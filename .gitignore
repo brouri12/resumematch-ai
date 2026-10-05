@@ -2,6 +2,7 @@ backend/.venv/
 backend/db.sqlite3
 backend/media/
 backend/staticfiles/
+backend/.cache/
 backend/**/__pycache__/
 backend/**/*.pyc
 frontend/node_modules/

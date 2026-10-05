@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useAuth } from '../context/AuthContext'
+import { motion } from 'motion/react'
 import { Alert, LEVEL_LABELS } from '../components/ui'
+import { EASE, PageHeader, Stagger, StaggerItem } from '../components/motion'
 
 export default function ProfilePage() {
   const { user, updateProfile } = useAuth()
@@ -44,12 +46,27 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-10 sm:px-6">
-      <h1 className="font-display text-3xl font-bold text-forest">Mon profil</h1>
-      <p className="mt-1 text-sm text-moss">
-        Compte <strong>{user?.username}</strong>
-      </p>
+      <motion.div
+        className="glass p-8"
+        initial={{ opacity: 0, y: 40, rotateX: 10 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ duration: 0.9, ease: EASE }}
+        style={{ transformPerspective: 1000 }}
+      >
+      <div className="flex items-center gap-4">
+        <motion.div
+          className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br from-forest to-leaf font-display text-2xl font-bold text-mint shadow-xl shadow-forest/30"
+          initial={{ scale: 0, rotate: -90 }}
+          animate={{ scale: 1, rotate: 0 }}
+          transition={{ type: 'spring', stiffness: 220, damping: 14, delay: 0.2 }}
+          whileHover={{ rotate: 8, scale: 1.05 }}
+        >
+          {(user?.first_name || user?.username || '?').charAt(0).toUpperCase()}
+        </motion.div>
+        <PageHeader title="Mon profil" subtitle={`Compte ${user?.username || ''}`} />
+      </div>
 
-      <form onSubmit={onSubmit} className="mt-8 space-y-4">
+      <Stagger as="form" onSubmit={onSubmit} className="mt-8 space-y-4" delay={0.35}>
         {error && <Alert>{error}</Alert>}
         {message && <Alert type="success">{message}</Alert>}
         <label className="block text-sm font-medium text-forest">
@@ -102,14 +119,19 @@ export default function ProfilePage() {
             onChange={(e) => setForm({ ...form, target_job_title: e.target.value })}
           />
         </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="rounded-xl bg-forest px-5 py-2.5 text-sm font-semibold text-sand disabled:opacity-50"
-        >
-          {loading ? 'Enregistrement…' : 'Enregistrer'}
-        </button>
-      </form>
+        <StaggerItem>
+          <motion.button
+            type="submit"
+            disabled={loading}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.96 }}
+            className="btn-shine rounded-xl bg-forest px-5 py-2.5 text-sm font-semibold text-sand shadow-lg shadow-forest/25 disabled:opacity-50"
+          >
+            {loading ? 'Enregistrement…' : 'Enregistrer'}
+          </motion.button>
+        </StaggerItem>
+      </Stagger>
+      </motion.div>
     </div>
   )
 }

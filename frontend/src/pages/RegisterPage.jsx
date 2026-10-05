@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'motion/react'
 import { useAuth } from '../context/AuthContext'
 import { Alert, LEVEL_LABELS } from '../components/ui'
+import { EASE, PageHeader, Stagger, StaggerItem } from '../components/motion'
 
 export default function RegisterPage() {
   const { register } = useAuth()
@@ -37,73 +39,93 @@ export default function RegisterPage() {
 
   return (
     <div className="mx-auto max-w-xl px-4 py-12">
-      <h1 className="font-display text-3xl font-bold text-forest">Créer un compte</h1>
-      <p className="mt-2 text-sm text-moss">Rejoignez ResumeMatch AI en quelques secondes.</p>
-      <form onSubmit={onSubmit} className="mt-8 grid gap-4 sm:grid-cols-2">
-        {error && (
-          <div className="sm:col-span-2">
-            <Alert>{error}</Alert>
-          </div>
-        )}
-        {[
-          ['username', 'Nom d’utilisateur', 'text'],
-          ['email', 'E-mail', 'email'],
-          ['first_name', 'Prénom', 'text'],
-          ['last_name', 'Nom', 'text'],
-          ['password', 'Mot de passe', 'password'],
-          ['password_confirm', 'Confirmer le mot de passe', 'password'],
-        ].map(([name, label, type]) => (
-          <label key={name} className="block text-sm font-medium text-forest">
-            {label}
-            <input
-              name={name}
-              type={type}
+      <motion.div
+        className="glass p-8"
+        initial={{ opacity: 0, y: 40, rotateX: 12 }}
+        animate={{ opacity: 1, y: 0, rotateX: 0 }}
+        transition={{ duration: 0.9, ease: EASE }}
+        style={{ transformPerspective: 1000 }}
+      >
+        <PageHeader
+          eyebrow="Bienvenue"
+          title="Créer un compte"
+          subtitle="Rejoignez ResumeMatch AI en quelques secondes."
+        />
+        <Stagger as="form" onSubmit={onSubmit} className="mt-8 grid gap-4 sm:grid-cols-2" delay={0.35} gap={0.06}>
+          {error && (
+            <div className="sm:col-span-2">
+              <Alert>{error}</Alert>
+            </div>
+          )}
+          {[
+            ['username', 'Nom d’utilisateur', 'text'],
+            ['email', 'E-mail', 'email'],
+            ['first_name', 'Prénom', 'text'],
+            ['last_name', 'Nom', 'text'],
+            ['password', 'Mot de passe', 'password'],
+            ['password_confirm', 'Confirmer le mot de passe', 'password'],
+          ].map(([name, label, type]) => (
+            <StaggerItem as="label" key={name} className="block text-sm font-medium text-forest">
+              {label}
+              <input
+                name={name}
+                type={type}
+                className="mt-1 w-full rounded-xl border border-forest/15 bg-white/70 px-3 py-2.5 outline-none ring-moss/30 focus:ring-2"
+                value={form[name]}
+                onChange={onChange}
+                required={['username', 'email', 'password', 'password_confirm'].includes(name)}
+              />
+            </StaggerItem>
+          ))}
+          <StaggerItem as="label" className="block text-sm font-medium text-forest">
+            Niveau
+            <select
+              name="level"
               className="mt-1 w-full rounded-xl border border-forest/15 bg-white/70 px-3 py-2.5 outline-none ring-moss/30 focus:ring-2"
-              value={form[name]}
+              value={form.level}
               onChange={onChange}
-              required={['username', 'email', 'password', 'password_confirm'].includes(name)}
+            >
+              {Object.entries(LEVEL_LABELS).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </StaggerItem>
+          <StaggerItem as="label" className="block text-sm font-medium text-forest">
+            Poste cible
+            <input
+              name="target_job_title"
+              className="mt-1 w-full rounded-xl border border-forest/15 bg-white/70 px-3 py-2.5 outline-none ring-moss/30 focus:ring-2"
+              value={form.target_job_title}
+              onChange={onChange}
+              placeholder="ex. Développeur backend"
             />
-          </label>
-        ))}
-        <label className="block text-sm font-medium text-forest">
-          Niveau
-          <select
-            name="level"
-            className="mt-1 w-full rounded-xl border border-forest/15 bg-white/70 px-3 py-2.5 outline-none ring-moss/30 focus:ring-2"
-            value={form.level}
-            onChange={onChange}
-          >
-            {Object.entries(LEVEL_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="block text-sm font-medium text-forest">
-          Poste cible
-          <input
-            name="target_job_title"
-            className="mt-1 w-full rounded-xl border border-forest/15 bg-white/70 px-3 py-2.5 outline-none ring-moss/30 focus:ring-2"
-            value={form.target_job_title}
-            onChange={onChange}
-            placeholder="ex. Développeur backend"
-          />
-        </label>
-        <button
-          type="submit"
-          disabled={loading}
-          className="sm:col-span-2 rounded-xl bg-coral py-3 text-sm font-semibold text-white transition hover:bg-coral/90 disabled:opacity-60"
+          </StaggerItem>
+          <StaggerItem className="sm:col-span-2">
+            <motion.button
+              type="submit"
+              disabled={loading}
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              className="btn-shine w-full rounded-xl bg-coral py-3 text-sm font-semibold text-white shadow-lg shadow-coral/30 transition-colors hover:bg-coral/90 disabled:opacity-60"
+            >
+              {loading ? 'Création…' : 'Créer mon compte'}
+            </motion.button>
+          </StaggerItem>
+        </Stagger>
+        <motion.p
+          className="mt-6 text-center text-sm text-moss"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 1 }}
         >
-          {loading ? 'Création…' : 'Créer mon compte'}
-        </button>
-      </form>
-      <p className="mt-6 text-center text-sm text-moss">
-        Déjà inscrit ?{' '}
-        <Link to="/connexion" className="font-semibold text-coral hover:underline">
-          Se connecter
-        </Link>
-      </p>
+          Déjà inscrit ?{' '}
+          <Link to="/connexion" className="font-semibold text-coral hover:underline">
+            Se connecter
+          </Link>
+        </motion.p>
+      </motion.div>
     </div>
   )
 }

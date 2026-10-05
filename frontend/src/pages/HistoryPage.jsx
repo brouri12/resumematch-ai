@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../api'
+import { motion } from 'motion/react'
 import { Alert, EmptyState, LEVEL_LABELS, STATUS_OPTIONS, StatusBadge } from '../components/ui'
+import { CountUp, EASE, Loader, PageHeader, Stagger, StaggerItem } from '../components/motion'
 
 export default function HistoryPage() {
   const [data, setData] = useState({ results: [], count: 0 })
@@ -59,17 +61,28 @@ export default function HistoryPage() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <h1 className="font-display text-3xl font-bold text-forest">Historique</h1>
-          <p className="mt-1 text-moss">{data.count || 0} analyse(s) enregistrée(s).</p>
-        </div>
-        <Link to="/analyse" className="rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-white">
-          Nouvelle analyse
-        </Link>
-      </div>
+      <PageHeader
+        eyebrow="Suivi"
+        title="Historique"
+        subtitle={`${data.count || 0} analyse(s) enregistrée(s).`}
+      >
+        <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
+          <Link
+            to="/analyse"
+            className="btn-shine block rounded-xl bg-coral px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-coral/30"
+          >
+            Nouvelle analyse
+          </Link>
+        </motion.div>
+      </PageHeader>
 
-      <form onSubmit={onSearch} className="mt-8 grid gap-3 sm:grid-cols-5">
+      <motion.form
+        onSubmit={onSearch}
+        className="glass mt-8 grid gap-3 p-4 sm:grid-cols-5"
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.35, ease: EASE }}
+      >
         <input
           className="rounded-xl border border-forest/15 bg-white/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-moss/30 sm:col-span-2"
           placeholder="Rechercher un titre ou une entreprise"
@@ -100,13 +113,15 @@ export default function HistoryPage() {
             </option>
           ))}
         </select>
-        <button
+        <motion.button
           type="submit"
-          className="rounded-xl bg-forest px-3 py-2 text-sm font-semibold text-sand"
+          whileHover={{ y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          className="btn-shine rounded-xl bg-forest px-3 py-2 text-sm font-semibold text-sand"
         >
           Filtrer
-        </button>
-      </form>
+        </motion.button>
+      </motion.form>
 
       {error && (
         <div className="mt-4">
@@ -115,7 +130,7 @@ export default function HistoryPage() {
       )}
 
       {loading ? (
-        <p className="mt-8 text-moss">Chargement…</p>
+        <Loader />
       ) : !data.results?.length ? (
         <div className="mt-8">
           <EmptyState title="Aucune candidature trouvée">
@@ -123,9 +138,19 @@ export default function HistoryPage() {
           </EmptyState>
         </div>
       ) : (
-        <ul className="mt-8 divide-y divide-forest/10 border-y border-forest/10">
+        <Stagger
+          as="ul"
+          key={`${filters.page}-${filters.status}-${filters.level}`}
+          className="mt-8 divide-y divide-forest/10 border-y border-forest/10"
+          gap={0.06}
+        >
           {data.results.map((item) => (
-            <li key={item.id} className="flex flex-wrap items-center justify-between gap-4 py-4">
+            <StaggerItem
+              as="li"
+              key={item.id}
+              whileHover={{ x: 6, backgroundColor: 'rgba(255,255,255,0.45)' }}
+              className="flex flex-wrap items-center justify-between gap-4 rounded-lg px-2 py-4"
+            >
               <div>
                 <Link to={`/resultats/${item.id}`} className="font-semibold text-forest hover:text-coral">
                   {item.job_title}
@@ -136,7 +161,7 @@ export default function HistoryPage() {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <span className="font-display text-2xl font-bold text-forest">{item.score}</span>
+                <CountUp value={item.score} duration={1.2} className="font-display text-2xl font-bold text-forest" />
                 <StatusBadge status={item.status} />
                 <select
                   className="rounded-lg border border-forest/15 bg-white/70 px-2 py-1 text-xs"
@@ -157,9 +182,9 @@ export default function HistoryPage() {
                   Supprimer
                 </button>
               </div>
-            </li>
+            </StaggerItem>
           ))}
-        </ul>
+        </Stagger>
       )}
 
       {totalPages > 1 && (

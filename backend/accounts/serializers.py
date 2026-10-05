@@ -57,8 +57,9 @@ class UserSerializer(serializers.ModelSerializer):
             "level",
             "target_job_title",
             "date_joined",
+            "is_staff",
         )
-        read_only_fields = ("id", "username", "date_joined")
+        read_only_fields = ("id", "username", "date_joined", "is_staff")
 
 
 class UserUpdateSerializer(serializers.ModelSerializer):

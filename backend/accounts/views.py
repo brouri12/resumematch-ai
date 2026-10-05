@@ -14,6 +14,16 @@ class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
+    def create(self, request, *args, **kwargs):
+        from adminpanel.models import SiteSettings
+
+        if not SiteSettings.load().allow_registration:
+            return Response(
+                {"detail": "Les inscriptions sont temporairement fermées."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        return super().create(request, *args, **kwargs)
+
 
 class MeView(APIView):
     def get(self, request):

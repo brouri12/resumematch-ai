@@ -69,6 +69,12 @@ async function request(path, { method = 'GET', body, headers = {}, auth = true, 
   return data
 }
 
+function toQuery(params) {
+  return new URLSearchParams(
+    Object.entries(params).filter(([, v]) => v !== undefined && v !== null && v !== ''),
+  ).toString()
+}
+
 function formatErrors(data) {
   if (typeof data === 'string') return data
   return Object.entries(data)
@@ -111,19 +117,48 @@ export const api = {
   },
   deleteCv: (id) => request(`/api/cvs/${id}/`, { method: 'DELETE' }),
   createAnalysis: (payload) => request('/api/analyses/', { method: 'POST', body: payload }),
+  createAnalysisAsync: (payload) => request('/api/analyses/async', { method: 'POST', body: payload }),
+  compareOffers: (payload) => request('/api/analyses/compare', { method: 'POST', body: payload }),
+  getAnalysisJob: (id) => request(`/api/analysis-jobs/${id}/`),
+  getExtra: (id, kind, language) =>
+    request(`/api/analyses/${id}/extras/${kind}?language=${language}`),
+  generateExtra: (id, kind, language, refresh = false) =>
+    request(`/api/analyses/${id}/extras/${kind}`, { method: 'POST', body: { language, refresh } }),
+  importJobOffer: (url) => request('/api/job-offers/import-url', { method: 'POST', body: { url } }),
+  systemStatus: () => request('/api/system/status/'),
+  jobSearch: {
+    sources: () => request('/api/job-search/sources'),
+    featured: () => request('/api/job-search/featured', { auth: false }),
+    list: () => request('/api/job-search/'),
+    run: (payload) => request('/api/job-search/', { method: 'POST', body: payload }),
+    get: (id) => request(`/api/job-search/${id}/`),
+    remove: (id) => request(`/api/job-search/${id}/`, { method: 'DELETE' }),
+  },
+  admin: {
+    overview: () => request('/api/admin-panel/overview/'),
+    users: (params = {}) => request(`/api/admin-panel/users/?${toQuery(params)}`),
+    updateUser: (id, payload) => request(`/api/admin-panel/users/${id}/`, { method: 'PATCH', body: payload }),
+    deleteUser: (id) => request(`/api/admin-panel/users/${id}/`, { method: 'DELETE' }),
+    analyses: (params = {}) => request(`/api/admin-panel/analyses/?${toQuery(params)}`),
+    deleteAnalysis: (id) => request(`/api/admin-panel/analyses/${id}/`, { method: 'DELETE' }),
+    jobs: (params = {}) => request(`/api/admin-panel/jobs/?${toQuery(params)}`),
+    purgeJobs: () => request('/api/admin-panel/jobs/', { method: 'DELETE' }),
+    clearCache: () => request('/api/admin-panel/cache/', { method: 'DELETE' }),
+    settings: () => request('/api/admin-panel/settings/'),
+    updateSettings: (payload) => request('/api/admin-panel/settings/', { method: 'PUT', body: payload }),
+  },
   listAnalyses: (params = {}) => {
-    const qs = new URLSearchParams(
-      Object.entries(params).filter(([, v]) => v !== undefined && v !== '')
-    ).toString()
+    const qs = toQuery(params)
     return request(`/api/analyses/${qs ? `?${qs}` : ''}`)
   },
   getAnalysis: (id) => request(`/api/analyses/${id}/`),
   deleteAnalysis: (id) => request(`/api/analyses/${id}/`, { method: 'DELETE' }),
   updateStatus: (id, status) =>
     request(`/api/analyses/${id}/status`, { method: 'PATCH', body: { status } }),
-  improveCv: (id) => request(`/api/analyses/${id}/improve-cv`, { method: 'POST' }),
-  createCoverLetter: (id, tone) =>
-    request(`/api/analyses/${id}/cover-letter`, { method: 'POST', body: { tone } }),
+  improveCv: (id, language = 'fr') =>
+    request(`/api/analyses/${id}/improve-cv`, { method: 'POST', body: { language } }),
+  createCoverLetter: (id, tone, language = 'fr') =>
+    request(`/api/analyses/${id}/cover-letter`, { method: 'POST', body: { tone, language } }),
   updateCoverLetter: (id, payload) =>
     request(`/api/cover-letters/${id}/`, { method: 'PUT', body: payload }),
   exportCoverLetterUrl: (id, format) =>
@@ -131,17 +166,31 @@ export const api = {
   dashboardStats: () => request('/api/dashboard/stats/'),
 }
 
-export async function downloadCoverLetter(id, format) {
-  const token = getAccessToken()
-  const res = await fetch(api.exportCoverLetterUrl(id, format), {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  })
-  if (!res.ok) throw new Error('Export impossible')
-  const blob = await res.blob()
+async function downloadFile(path, filename) {
+  const blob = await request(path)
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
   a.href = url
-  a.download = `lettre_motivation.${format}`
+  a.download = filename
   a.click()
   URL.revokeObjectURL(url)
+}
+
+export function downloadCoverLetter(id, format) {
+  return downloadFile(`/api/cover-letters/${id}/export?format=${format}`, `lettre_motivation.${format}`)
+}
+
+export function downloadReport(id, language = 'fr') {
+  return downloadFile(`/api/analyses/${id}/report?language=${language}`, `rapport_analyse_${id}.docx`)
+}
+
+export async function pollJob(jobId, onUpdate, { interval = 1200, timeout = 300000 } = {}) {
+  const started = Date.now()
+  for (;;) {
+    const job = await api.getAnalysisJob(jobId)
+    onUpdate?.(job)
+    if (job.state === 'done' || job.state === 'failed') return job
+    if (Date.now() - started > timeout) throw new Error('Analysis timeout')
+    await new Promise((resolve) => setTimeout(resolve, interval))
+  }
 }

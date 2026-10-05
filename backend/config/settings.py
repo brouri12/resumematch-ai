@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     "accounts",
     "cvs",
     "analyses",
+    "adminpanel",
 ]
 
 MIDDLEWARE = [
@@ -113,6 +114,8 @@ else:
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
             "NAME": BASE_DIR / "db.sqlite3",
+            # Background analysis threads write concurrently with requests
+            "OPTIONS": {"timeout": 20},
         }
     }
 
@@ -147,7 +150,16 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
     # Allow ?format=txt|docx on export endpoints without DRF content-negotiation 404
     "URL_FORMAT_OVERRIDE": None,
+    "DEFAULT_THROTTLE_RATES": {
+        "ai": os.getenv("AI_THROTTLE_RATE", "30/hour"),
+        "job_import": os.getenv("JOB_IMPORT_THROTTLE_RATE", "20/hour"),
+    },
 }
+
+# Max analyses per user over a rolling 24h window (0 = unlimited)
+ANALYSIS_DAILY_QUOTA = int(os.getenv("ANALYSIS_DAILY_QUOTA", "20"))
+# Run analysis jobs inline instead of in a background thread (used by tests)
+ANALYSIS_JOBS_SYNC = os.getenv("ANALYSIS_JOBS_SYNC", "False").lower() in ("1", "true", "yes")
 
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(
@@ -180,6 +192,29 @@ LLM_PROVIDER = os.getenv("LLM_PROVIDER", "anthropic")
 LLM_API_KEY = os.getenv("LLM_API_KEY", "")
 LLM_MODEL = os.getenv("LLM_MODEL", "claude-sonnet-4-20250514")
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "3"))
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")
+
+# Job search: free public feeds (no key) + optional keyed APIs, enabled when credentials are set
+JOB_SEARCH_SOURCES = [
+    s.strip()
+    for s in os.getenv("JOB_SEARCH_SOURCES", "remotive,arbeitnow,jobicy").split(",")
+    if s.strip()
+]
+ADZUNA_APP_ID = os.getenv("ADZUNA_APP_ID", "")
+ADZUNA_APP_KEY = os.getenv("ADZUNA_APP_KEY", "")
+ADZUNA_COUNTRY = os.getenv("ADZUNA_COUNTRY", "fr")
+FRANCE_TRAVAIL_CLIENT_ID = os.getenv("FRANCE_TRAVAIL_CLIENT_ID", "")
+FRANCE_TRAVAIL_CLIENT_SECRET = os.getenv("FRANCE_TRAVAIL_CLIENT_SECRET", "")
+
+CACHES = {
+    "default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"},
+    # Feed responses survive restarts so public APIs are not hammered (Remotive: max ~4 calls/day)
+    "jobs": {
+        "BACKEND": "django.core.cache.backends.filebased.FileBasedCache",
+        "LOCATION": BASE_DIR / ".cache" / "jobs",
+        "TIMEOUT": 3600,
+    },
+}
 
 # Score weights
 SCORE_WEIGHT_SKILLS = float(os.getenv("SCORE_WEIGHT_SKILLS", "0.55"))

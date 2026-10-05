@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Analysis, CoverLetter, JobOffer
+from .models import Analysis, AnalysisJob, CoverLetter, JobOffer, JobSearch, LLMCacheEntry
 
 
 @admin.register(JobOffer)
@@ -18,3 +18,21 @@ class AnalysisAdmin(admin.ModelAdmin):
 @admin.register(CoverLetter)
 class CoverLetterAdmin(admin.ModelAdmin):
     list_display = ("id", "analysis", "tone", "created_at")
+
+
+@admin.register(AnalysisJob)
+class AnalysisJobAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "state", "progress", "step", "analysis", "created_at")
+    list_filter = ("state",)
+
+
+@admin.register(JobSearch)
+class JobSearchAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "cv", "ai_mode", "created_at")
+    list_filter = ("ai_mode",)
+
+
+@admin.register(LLMCacheEntry)
+class LLMCacheEntryAdmin(admin.ModelAdmin):
+    list_display = ("id", "kind", "key", "created_at")
+    list_filter = ("kind",)

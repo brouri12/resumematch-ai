@@ -76,6 +76,26 @@ App : http://127.0.0.1:43124/
 
 Le serveur Vite proxy les appels `/api` vers le backend.
 
+### 4. Données de démonstration
+
+```bash
+cd backend
+python manage.py seed_demo            # crée admin + 3 candidats avec CV PDF, analyses, lettres, extras
+python manage.py seed_demo --reset    # supprime puis recrée uniquement les comptes de démo
+python manage.py seed_demo --with-ai  # utilise le vrai LLM (sinon moteur mock, gratuit)
+```
+
+| Compte | Mot de passe | Profil |
+| --- | --- | --- |
+| `admin` | `Admin1234!` | Super-admin → menu **Administration** (`/administration`) |
+| `sarah` | `Demo1234!` | Étudiante, Data Analyst (3 offres) |
+| `karim` | `Demo1234!` | Junior Full-Stack (4 offres, une offre reçue, une tâche en échec) |
+| `lea` | `Demo1234!` | Confirmée, Lead Dev (2 offres) |
+
+La console d'administration permet de suivre les statistiques globales, gérer les utilisateurs
+(activer, promouvoir admin, niveau, suppression), les analyses, les tâches asynchrones, et de régler
+quota quotidien, mode démo forcé, ouverture des inscriptions, annonce globale et cache IA.
+
 ## Fonctionnalités
 
 1. Inscription / connexion JWT, édition du profil (niveau, poste cible)
@@ -88,6 +108,10 @@ Le serveur Vite proxy les appels `/api` vers le backend.
 8. Lettre de motivation (ton formel / dynamique / concis), édition + export `.txt` / `.docx`
 9. Historique des candidatures (filtres, statut, suppression)
 10. **Mode niveau** Étudiant / Junior / Confirmé (prompts, pondération, ton)
+11. **Offres IA** (`/offres`) : l'IA déduit du CV les intitulés et compétences à chercher, récupère des
+    offres réelles (Remotive, Arbeitnow, Jobicy ; Adzuna et France Travail si clés API dans `.env`),
+    les filtre par lieu / télétravail, puis classe les 20 meilleures avec score, raison, atouts et lacunes.
+    Un clic lance l'analyse détaillée complète de l'offre choisie.
 
 ## Endpoints principaux (`/api/`)
 
