@@ -3,15 +3,15 @@
 @theme {
   --font-display: "Fraunces", Georgia, serif;
   --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --color-ink: #0f1c18;
-  --color-forest: #1a3a2f;
-  --color-moss: #2f6b55;
-  --color-leaf: #3d8b6e;
-  --color-mint: #a8e6cf;
-  --color-foam: #e8f5ef;
-  --color-sand: #f3efe6;
-  --color-coral: #c45c26;
-  --color-amber: #e8a317;
+  --color-ink: #0c1814;
+  --color-forest: #14352b;
+  --color-moss: #2a6b54;
+  --color-leaf: #3a8f6e;
+  --color-mint: #9fd9c0;
+  --color-foam: #e4f3eb;
+  --color-sand: #eef3f0;
+  --color-coral: #0e7c66;
+  --color-amber: #d4a017;
 }
 
 @layer base {
@@ -22,9 +22,9 @@
   body {
     @apply m-0 min-h-screen font-sans text-ink antialiased;
     background:
-      radial-gradient(ellipse 80% 50% at 10% -10%, rgba(168, 230, 207, 0.45), transparent 50%),
-      radial-gradient(ellipse 60% 40% at 100% 0%, rgba(232, 163, 23, 0.18), transparent 45%),
-      linear-gradient(165deg, #f7f4ec 0%, #eef6f1 45%, #e6efe9 100%);
+      radial-gradient(ellipse 80% 50% at 8% -8%, rgba(159, 217, 192, 0.5), transparent 52%),
+      radial-gradient(ellipse 55% 40% at 100% 0%, rgba(212, 160, 23, 0.14), transparent 48%),
+      linear-gradient(165deg, #eef3f0 0%, #e5efe9 48%, #dceae3 100%);
     background-attachment: fixed;
   }
 

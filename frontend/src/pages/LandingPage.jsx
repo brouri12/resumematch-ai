@@ -31,7 +31,7 @@ export default function LandingPage() {
           aria-hidden
           style={{
             backgroundImage:
-              'linear-gradient(120deg, rgba(15,28,24,0.78) 0%, rgba(26,58,47,0.55) 45%, rgba(196,92,38,0.35) 100%), url("https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80")',
+              'linear-gradient(120deg, rgba(12,24,20,0.82) 0%, rgba(20,53,43,0.62) 48%, rgba(14,124,102,0.38) 100%), url("https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80")',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
           }}

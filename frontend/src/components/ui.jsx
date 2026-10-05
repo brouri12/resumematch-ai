@@ -32,7 +32,7 @@ export function ScoreGauge({ score, size = 140 }) {
 export function SkillChips({ items = [], variant = 'present' }) {
   const styles =
     variant === 'missing'
-      ? 'bg-coral/10 text-coral border-coral/20'
+      ? 'bg-amber/15 text-forest border-amber/40'
       : 'bg-moss/10 text-forest border-moss/20'
 
   if (!items.length) {
