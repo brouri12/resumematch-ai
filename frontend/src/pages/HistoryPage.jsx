@@ -69,7 +69,7 @@ export default function HistoryPage() {
         </Link>
       </div>
 
-      <form onSubmit={onSearch} className="mt-8 grid gap-3 sm:grid-cols-4">
+      <form onSubmit={onSearch} className="mt-8 grid gap-3 sm:grid-cols-5">
         <input
           className="rounded-xl border border-forest/15 bg-white/70 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-moss/30 sm:col-span-2"
           placeholder="Rechercher un titre ou une entreprise"
@@ -100,6 +100,12 @@ export default function HistoryPage() {
             </option>
           ))}
         </select>
+        <button
+          type="submit"
+          className="rounded-xl bg-forest px-3 py-2 text-sm font-semibold text-sand"
+        >
+          Filtrer
+        </button>
       </form>
 
       {error && (
