@@ -15,7 +15,33 @@ Plateforme web MVP qui compare un CV (PDF) à une offre d'emploi, calcule un sco
 | PDF | pdfplumber (fallback PyPDF2) |
 | IA | `services/ai_service.py` provider-agnostique (Anthropic par défaut) |
 
-## Démarrage rapide
+## Démarrage local (recommandé)
+
+```bash
+# 1) Cloner le dépôt (après Create repo dans Cursor)
+cd ~/Desktop
+git clone <URL_DU_REPO>
+cd resumematch-ai   # adapte le nom
+
+# 2) Lancer backend + frontend
+chmod +x start-local.sh
+./start-local.sh
+```
+
+- App : http://127.0.0.1:43124/
+- API : http://127.0.0.1:8765/api/health/
+
+Sans `LLM_API_KEY` dans `.env`, le mode mock fonctionne tout de suite.
+
+### Ouverture dans Cursor Desktop
+
+```bash
+cursor ~/Desktop/resumematch-ai
+```
+
+Puis File → Open Folder si besoin. Choisis l’agent **Local** (pas Cloud).
+
+## Démarrage manuel
 
 ### 1. Variables d'environnement
 

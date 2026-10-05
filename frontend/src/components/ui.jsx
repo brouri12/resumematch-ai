@@ -65,7 +65,7 @@ export function StatusBadge({ status }) {
     to_apply: 'bg-amber/20 text-forest',
     applied: 'bg-moss/15 text-moss',
     interview: 'bg-leaf/20 text-forest',
-    rejected: 'bg-coral/15 text-coral',
+    rejected: 'bg-forest/10 text-forest',
     offer: 'bg-mint text-forest',
   }
   return (
