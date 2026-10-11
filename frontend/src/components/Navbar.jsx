@@ -78,7 +78,7 @@ export default function Navbar() {
     <motion.header
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.8, ease: EASE }}
+      transition={{ duration: 0.4, ease: EASE }}
       className={`sticky top-0 z-40 border-b transition-all duration-500 ${
         scrolled
           ? 'border-forest/10 bg-sand/75 shadow-[0_10px_40px_-20px_rgba(20,53,43,0.4)] backdrop-blur-xl'

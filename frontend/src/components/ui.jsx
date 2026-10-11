@@ -13,10 +13,10 @@ export function ScoreGauge({ score, size = 140 }) {
     <motion.div
       className="relative inline-flex items-center justify-center"
       style={{ width: size, height: size }}
-      initial={{ opacity: 0, scale: 0.7, rotate: -20 }}
+      initial={{ opacity: 0, scale: 0.85, rotate: -10 }}
       whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 1, ease: EASE }}
+      transition={{ duration: 0.45, ease: EASE }}
     >
       <motion.div
         aria-hidden
@@ -25,7 +25,7 @@ export function ScoreGauge({ score, size = 140 }) {
         initial={{ opacity: 0 }}
         whileInView={{ opacity: [0, 0.35, 0.2] }}
         viewport={{ once: true }}
-        transition={{ duration: 2.2, delay: 0.4 }}
+        transition={{ duration: 0.9, delay: 0.1 }}
       />
       <svg viewBox="0 0 120 120" className="relative h-full w-full -rotate-90">
         <circle cx="60" cy="60" r={radius} fill="none" stroke="#d8e8df" strokeWidth="10" />
@@ -41,11 +41,11 @@ export function ScoreGauge({ score, size = 140 }) {
           initial={{ strokeDashoffset: circumference }}
           whileInView={{ strokeDashoffset: offset }}
           viewport={{ once: true }}
-          transition={{ duration: 1.8, delay: 0.3, ease: EASE }}
+          transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <CountUp value={score} duration={1.8} className="font-display text-3xl font-bold text-forest" />
+        <CountUp value={score} duration={0.8} className="font-display text-3xl font-bold text-forest" />
         <span className="text-xs uppercase tracking-wider text-moss">/ 100</span>
       </div>
     </motion.div>
