@@ -1,0 +1,85 @@
+@startuml activite-recherche-offres
+title ResumeMatch AI — Diagramme d'activité : rechercher des offres avec l'IA
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam activity {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  DiamondBackgroundColor #DCEFE6
+  DiamondBorderColor #1F4D3E
+}
+skinparam swimlane {
+  BorderColor #2F8F73
+  TitleFontColor #14352B
+}
+
+|Candidat|
+start
+:Ouvrir « Offres IA »;
+:Choisir un CV, le lieu,\nle télétravail et les sources;
+:Lancer la recherche;
+
+|API Django|
+if (Le CV contient du texte exploitable ?) then (non)
+  :Répondre 400;
+  |Candidat|
+  stop
+else (oui)
+  |API Django|
+endif
+if (Compétences du CV déjà extraites ?) then (non)
+  |Service IA|
+  :Extraire les compétences du CV;
+  |API Django|
+else (oui)
+endif
+
+|Service IA|
+:Construire le plan de recherche\n(intitulés FR/EN, mots-clés, séniorité);
+
+|API Django|
+fork
+  :Interroger Remotive;
+fork again
+  :Interroger Arbeitnow;
+fork again
+  :Interroger Jobicy;
+fork again
+  :Interroger Adzuna\n(si clé API);
+fork again
+  :Interroger France Travail\n(si clé API);
+end fork
+note right
+  Requêtes en parallèle (ThreadPoolExecutor),
+  cache fichier 1 h, délai max 8 s par source :
+  une source en échec est ignorée.
+end note
+
+if (Toutes les sources en échec ?) then (oui)
+  :Répondre 502 « Aucune source n'a répondu »;
+  |Candidat|
+  stop
+else (non)
+endif
+
+|API Django|
+:Dédoublonner les offres;
+:Filtrer par lieu / télétravail;
+:Pré-classer localement\n(compétences + similarité du titre);
+
+|Service IA|
+:Évaluer chaque offre retenue\n(score, raison, atouts, lacunes);
+
+|API Django|
+:Garder les 20 meilleures offres;
+:Enregistrer la recherche (JobSearch)\net ne conserver que les 10 dernières;
+
+|Candidat|
+:Consulter les offres classées;
+if (Lancer l'analyse détaillée d'une offre ?) then (oui)
+  :Ouvrir l'assistant d'analyse\npré-rempli avec l'offre;
+  note right: voir le diagramme « Lancer une analyse »
+else (non)
+endif
+stop
+@enduml

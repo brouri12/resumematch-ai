@@ -1,0 +1,89 @@
+@startuml activite-authentification
+title ResumeMatch AI — Diagramme d'activité : inscription, connexion et session JWT
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam activity {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  DiamondBackgroundColor #DCEFE6
+  DiamondBorderColor #1F4D3E
+}
+skinparam swimlane {
+  BorderColor #2F8F73
+  TitleFontColor #14352B
+}
+
+|Visiteur|
+start
+if (Possède déjà un compte ?) then (non)
+  :Remplir le formulaire d'inscription\n(utilisateur, e-mail, mot de passe x2,\nniveau, poste cible);
+  |API Django|
+  if (Inscriptions ouvertes ?) then (non)
+    :Répondre 403;
+    |Visiteur|
+    stop
+  else (oui)
+    |API Django|
+  endif
+  if (E-mail unique, mots de passe identiques\net mot de passe robuste ?) then (non)
+    |Interface React|
+    :Afficher les erreurs de validation;
+    |Visiteur|
+    stop
+  else (oui)
+    |API Django|
+    :Créer l'utilisateur\n(mot de passe haché PBKDF2);
+  endif
+else (oui)
+endif
+
+|Visiteur|
+:Saisir nom d'utilisateur et mot de passe;
+|API Django|
+if (Identifiants valides et compte actif ?) then (non)
+  |Interface React|
+  :Afficher « Aucun compte actif… »;
+  |Visiteur|
+  stop
+else (oui)
+  |API Django|
+  :Émettre un jeton d'accès (60 min)\net un jeton de rafraîchissement (7 j);
+endif
+
+|Interface React|
+:Stocker les jetons (localStorage);
+:Charger le profil (GET /auth/me);
+:Rediriger vers le tableau de bord;
+
+|Candidat|
+repeat
+  :Utiliser l'application;
+  |Interface React|
+  :Appeler l'API avec « Authorization: Bearer »;
+  |API Django|
+  if (Jeton d'accès expiré (401) ?) then (oui)
+    |Interface React|
+    :Demander un nouveau jeton\n(POST /auth/refresh);
+    |API Django|
+    if (Jeton de rafraîchissement valide ?) then (oui)
+      |Interface React|
+      :Rejouer la requête;
+    else (non)
+      |Interface React|
+      :Effacer les jetons;
+      :Rediriger vers /connexion;
+      |Candidat|
+      stop
+    endif
+  else (non)
+    |API Django|
+    :Répondre normalement;
+  endif
+  |Candidat|
+repeat while (Continuer ?) is (oui)
+-> se déconnecter;
+|Interface React|
+:Effacer les jetons;
+|Candidat|
+stop
+@enduml

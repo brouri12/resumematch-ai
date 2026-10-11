@@ -1,0 +1,415 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><title>ResumeMatch AI — Prompts utilisés pendant la création de l'application</title><style>
+@page { size: A4; margin: 16mm 14mm; }
+body { font: 10.5pt/1.5 'Segoe UI', Calibri, sans-serif; color: #1c2b25; max-width: 1000px; margin: auto; padding: 24px; }
+h1 { color: #14352b; font-size: 24pt; border-bottom: 3px solid #2f8f73; padding-bottom: 6px; }
+h2 { color: #1f4d3e; font-size: 16pt; margin-top: 28px; border-bottom: 1px solid #cfe3d9; padding-bottom: 4px; page-break-after: avoid; }
+h3 { color: #1f4d3e; font-size: 12.5pt; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 9pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: #dcefe6; color: #14352b; text-align: left; }
+th, td { border: 1px solid #c4d8ce; padding: 5px 7px; vertical-align: top; }
+td img { width: 100%; border: 1px solid #c4d8ce; }
+p > img, body > p img { display: block; max-width: 100%; margin: 10px auto; border: 1px solid #c4d8ce; box-shadow: 0 2px 8px rgba(0,0,0,.08); page-break-inside: avoid; }
+code { font-family: Consolas, monospace; background: #eef4f1; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+pre { background: #0f1f19; color: #d7efe4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 8.5pt; page-break-inside: avoid; }
+pre code { background: none; color: inherit; }
+blockquote { border-left: 4px solid #2f8f73; margin: 10px 0; padding: 4px 12px; background: #f1f8f4; font-style: italic; }
+hr { border: none; border-top: 1px solid #cfe3d9; margin: 22px 0; }
+</style><body><h1>ResumeMatch AI — Prompts utilisés pendant la création de l'application</h1>
+<p>Ce document rassemble les <strong>prompts (instructions) donnés à l'agent IA Cursor</strong> pour construire, faire évoluer, optimiser et tester ResumeMatch AI, ainsi que les <strong>prompts envoyés au modèle de langage (LLM)</strong> par l'application elle-même.</p>
+<table>
+<thead>
+<tr>
+<th>Partie</th>
+<th>Contenu</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Chronologie du projet</td>
+<td>Historique Git du dépôt <code>brouri12/resumematch-ai</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Phase de création (5 octobre 2026)</td>
+<td>Commits de l'agent Cursor — prompts <strong>reconstitués</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Phase d'évolution et de qualité (11 octobre 2026)</td>
+<td>Historique des conversations Cursor — prompts <strong>originaux</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Prompts IA intégrés à l'application</td>
+<td>Code source <code>backend/services/ai_service.py</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. Chronologie du projet</h2>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Commit</th>
+<th>Auteur</th>
+<th>Étape</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>05/10/2026</td>
+<td><code>47f5c5f</code></td>
+<td>azouzi marwen</td>
+<td>Initialisation du dépôt</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>58adf16</code></td>
+<td>Cursor Agent</td>
+<td>MVP complet : API Django + interface React</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>34bf48f</code></td>
+<td>Cursor Agent</td>
+<td>Correction du filtre de recherche de l'historique</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>1ad595b</code></td>
+<td>Cursor Agent</td>
+<td>Tests unitaires du scoring (synonymes, recouvrement)</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>fbc695e</code></td>
+<td>Cursor Agent</td>
+<td>Nouvelle palette de couleurs forêt / sarcelle</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>d6d6a07</code></td>
+<td>Cursor Agent</td>
+<td>Favicon aligné sur la palette</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>c10ac4a</code></td>
+<td>Cursor Agent</td>
+<td>Script <code>start-local.sh</code> (lancement en une commande)</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>13a2769</code></td>
+<td>Mahdibouazizi + Cursor</td>
+<td>Offres IA, console d'administration, données de démo, outils carrière</td>
+</tr>
+<tr>
+<td>11/10/2026</td>
+<td><code>4c99d1f</code></td>
+<td>brouri12 + Cursor</td>
+<td>Optimisation de la réactivité de l'interface</td>
+</tr>
+<tr>
+<td>11/10/2026</td>
+<td>—</td>
+<td>Cursor Agent</td>
+<td>Découpage en 5 modules (branches Git), campagne de tests, rapport technique, conception UML</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>2. Phase de création — 5 octobre 2026 (prompts reconstitués)</h2>
+<blockquote>
+<p><strong>Important :</strong> les conversations de cette phase ont été menées avec un agent Cursor sur un autre poste ou compte (les commits sont signés <em>Cursor Agent</em>, co-auteur <code>marwenazouzi44</code>). Leur texte original <strong>n'est pas présent sur cette machine</strong>. Les prompts ci-dessous sont <strong>reconstitués</strong> à partir du contenu exact de chaque commit et du README ; ils décrivent fidèlement ce qui a été demandé et livré, mais ne sont pas la formulation mot pour mot. Les originaux sont consultables dans l'historique des agents du compte Cursor qui a créé le projet (cursor.com → Agents).</p>
+</blockquote>
+<h3>Prompt C1 — Création du MVP (commit <code>58adf16</code>)</h3>
+<pre><code class="language-text">Crée une application web full-stack « ResumeMatch AI » pour l'équipe CVisionnaires AI
+(slogan : « Transformez votre CV, visualisez votre avenir. »).
+Backend : Python, Django 5, Django REST Framework, authentification JWT (SimpleJWT),
+SQLite en développement et PostgreSQL via variables d'environnement.
+Frontend : React + Vite + Tailwind CSS + React Router.
+Fonctionnalités :
+1. Inscription / connexion JWT et profil (niveau Étudiant / Junior / Confirmé, poste cible)
+2. Import d'un CV PDF (max 5 Mo) et extraction du texte (pdfplumber, repli PyPDF2)
+3. Extraction structurée des compétences du CV par un LLM
+4. Analyse de l'offre d'emploi (compétences requises, nice-to-have, séniorité)
+5. Score de compatibilité 0-100 hybride : recouvrement des compétences + évaluation
+   sémantique par le LLM, poids configurables (55 % / 45 %) et ajustés selon le niveau
+6. Compétences présentes / manquantes et recommandations d'amélioration du CV
+7. Lettre de motivation (ton formel, dynamique ou concis), éditable, export .txt / .docx
+8. Historique des candidatures avec filtres, statut et suppression
+Le service IA doit être indépendant du fournisseur (Anthropic par défaut) et fonctionner
+hors ligne avec un moteur mock déterministe quand LLM_API_KEY est vide.
+</code></pre>
+<h3>Prompt C2 — Correction (commit <code>34bf48f</code>)</h3>
+<pre><code class="language-text">Le filtre de recherche de la page Historique ne se soumet pas correctement : stabilise-le.
+</code></pre>
+<h3>Prompt C3 — Tests (commit <code>1ad595b</code>)</h3>
+<pre><code class="language-text">Ajoute des tests unitaires pour le calcul du score : synonymes de compétences
+(ex. JS / JavaScript) et score de recouvrement.
+</code></pre>
+<h3>Prompt C4 — Identité visuelle (commits <code>fbc695e</code>, <code>d6d6a07</code>)</h3>
+<pre><code class="language-text">Change la palette de couleurs : évite le cliché crème / terracotta et passe sur des
+tons forêt / sarcelle. Aligne aussi le favicon sur cette palette.
+</code></pre>
+<h3>Prompt C5 — Lancement local (commit <code>c10ac4a</code>)</h3>
+<pre><code class="language-text">Ajoute un script start-local.sh qui prépare tout en une commande pour Cursor Desktop :
+environnement virtuel, migrations, Django sur le port 8765 et Vite sur le port 43124.
+</code></pre>
+<h3>Prompt C6 — Extension majeure (commit <code>13a2769</code>)</h3>
+<pre><code class="language-text">Ajoute les fonctionnalités suivantes :
+- « Offres IA » : à partir du CV, l'IA construit un plan de recherche, récupère des offres
+  réelles (Remotive, Arbeitnow, Jobicy, et Adzuna / France Travail si clés API), les filtre
+  par lieu / télétravail, les classe (score, raison, atouts, lacunes), permet de lancer
+  l'analyse détaillée en un clic et enregistre les recherches.
+- Page d'accueil : vitrine d'offres en direct et logos des sources.
+- Console d'administration : statistiques, utilisateurs, analyses, tâches, paramètres du site
+  (quota quotidien, mode démo forcé, inscriptions, annonce globale, cache IA).
+- Commande seed_demo : comptes de démo, vrais CV PDF et analyses.
+- Page résultats : préparation d'entretien, réécriture du CV, vérification ATS,
+  plan d'apprentissage, rapport .docx et mise en page d'impression.
+- Analyses asynchrones avec progression, import d'offre par URL, comparaison multi-offres,
+  tableau Kanban des candidatures, courbe d'évolution du score, interface FR / EN,
+  cache LLM, limitation de débit et quotas.
+- Suites de tests backend et Vitest.
+</code></pre>
+<hr />
+<h2>3. Phase d'évolution et de qualité — 11 octobre 2026 (prompts originaux)</h2>
+<p>Prompts <strong>exacts</strong> saisis dans Cursor, dans l'ordre, avec une reformulation et le résultat obtenu. Les messages automatiques de l'environnement (notifications de fin de tâche) sont exclus.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Prompt original (texte exact)</th>
+<th>Reformulation</th>
+<th>Résultat</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1</td>
+<td><code>https://github.com/brouri12/resumematch-ai pull the project and run it in ide cursor</code></td>
+<td>Cloner le dépôt et lancer l'application dans Cursor</td>
+<td>Projet cloné et démarré en local</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><code>i want you to split this progect to 5  modules and the you push each module in that repo git in braches that has the name of each module ok</code></td>
+<td>Découper le projet en 5 modules et pousser chacun sur une branche Git portant son nom</td>
+<td>Branches <code>auth</code>, <code>cv-management</code>, <code>analysis</code>, <code>job-search</code>, <code>admin-panel</code></td>
+</tr>
+<tr>
+<td>P3</td>
+<td><code>now i want you to solve the prolems in the app because it take alot of time to respense for any action</code></td>
+<td>Corriger la lenteur de l'application à chaque action</td>
+<td>Diagnostic (API rapide, lenteur due aux animations) ; navigation ≈ 0,35 s au lieu de plus de 1 s ; commit <code>4c99d1f</code></td>
+</tr>
+<tr>
+<td>P4</td>
+<td><code>YES</code></td>
+<td>Valider : commiter, pousser sur <code>main</code> et reporter le correctif sur les 5 branches</td>
+<td>Correctif poussé sur <code>main</code> et les 5 branches modules</td>
+</tr>
+<tr>
+<td>P5</td>
+<td><code>I WANT YOU TO use 5 tools of test to test the full app and the collect the resultes and make a comparation table and dont forget to take screenshots to add it tho the technical raport that you gonna make it ok</code></td>
+<td>Tester l'application avec 5 outils, comparer les résultats, rédiger un rapport technique avec captures</td>
+<td>Django test + Coverage.py, Vitest, Playwright, Locust, Lighthouse ; <code>docs/test-report/TECHNICAL_REPORT.{md,docx,pdf}</code></td>
+</tr>
+<tr>
+<td>P6</td>
+<td><code>AJOUTER LES PROMPT utilisuer durant touts la creation de app et creerer les diagramme de classe et usecase et activiter</code></td>
+<td>Documenter les prompts de création et produire les diagrammes UML de classes, cas d'utilisation et activité</td>
+<td>Ce document + <code>docs/conception/</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>4. Prompts IA intégrés à l'application</h2>
+<p>L'application envoie ses propres prompts au LLM (<code>backend/services/ai_service.py</code>). Chaque prompt :</p>
+<ul>
+<li>exige une réponse <strong>« UNIQUEMENT en JSON strict »</strong> et fournit le <strong>schéma JSON</strong> attendu (généré depuis un modèle Pydantic) ;</li>
+<li>est validé par Pydantic, avec <strong>jusqu'à 3 tentatives</strong> puis un <strong>repli sur le moteur mock</strong> si la réponse reste invalide ;</li>
+<li>est enrichi par trois fragments réutilisables : niveau, ton et langue.</li>
+</ul>
+<h3>4.1 Fragments réutilisables</h3>
+<table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Valeur</th>
+<th>Texte injecté</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Niveau</td>
+<td><code>etudiant</code></td>
+<td>Le candidat est ÉTUDIANT. Mets en avant les projets académiques, stages, certifications et le potentiel d'apprentissage. L'expérience professionnelle pèse moins dans l'évaluation.</td>
+</tr>
+<tr>
+<td>Niveau</td>
+<td><code>junior</code></td>
+<td>Le candidat est JUNIOR. Mets en avant les réalisations concrètes, outils maîtrisés et le travail en équipe.</td>
+</tr>
+<tr>
+<td>Niveau</td>
+<td><code>confirme</code></td>
+<td>Le candidat est CONFIRMÉ. Mets en avant l'impact, le leadership, les décisions d'architecture et les résultats mesurables.</td>
+</tr>
+<tr>
+<td>Ton</td>
+<td><code>formal</code></td>
+<td>Ton formel, professionnel et respectueux.</td>
+</tr>
+<tr>
+<td>Ton</td>
+<td><code>dynamic</code></td>
+<td>Ton dynamique, enthousiaste et motivé.</td>
+</tr>
+<tr>
+<td>Ton</td>
+<td><code>concise</code></td>
+<td>Ton concis, direct, sans fioritures (max 250 mots).</td>
+</tr>
+<tr>
+<td>Langue</td>
+<td><code>fr</code></td>
+<td>Rédige tout le contenu textuel en français.</td>
+</tr>
+<tr>
+<td>Langue</td>
+<td><code>en</code></td>
+<td>Write all textual content in English.</td>
+</tr>
+</tbody>
+</table>
+<h3>4.2 Prompts par fonctionnalité</h3>
+<table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Fonctionnalité</th>
+<th>Prompt (début du texte)</th>
+<th>Contexte envoyé</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extract_cv_skills</code></td>
+<td>Extraction du CV</td>
+<td>« Extrais du CV les informations suivantes en JSON strict. Réponds UNIQUEMENT avec un objet JSON valide. »</td>
+<td>Schéma + CV (12 000 caractères)</td>
+</tr>
+<tr>
+<td><code>analyze_job_offer</code></td>
+<td>Analyse de l'offre</td>
+<td>« Analyse cette offre d'emploi et extrais les compétences et infos en JSON strict. »</td>
+<td>Schéma + offre (12 000 car.)</td>
+</tr>
+<tr>
+<td><code>evaluate_semantic_fit</code></td>
+<td>Score sémantique</td>
+<td>« Évalue la compatibilité sémantique entre le CV et l'offre (0-100). »</td>
+<td>Niveau, compétences présentes / manquantes, CV et offre (6 000 car. chacun)</td>
+</tr>
+<tr>
+<td><code>generate_recommendations</code></td>
+<td>Recommandations</td>
+<td>« Propose des recommandations d'amélioration du CV pour cette offre. » + « Focus sur recommandations actionnables (3 à 6 items). »</td>
+<td>Niveau, langue, compétences manquantes, CV, offre</td>
+</tr>
+<tr>
+<td><code>generate_cover_letter</code></td>
+<td>Lettre de motivation</td>
+<td>« Rédige une lettre de motivation personnalisée. Réponds UNIQUEMENT en JSON strict avec la clé content. »</td>
+<td>Niveau, ton, langue, candidat, poste, entreprise, CV, offre</td>
+</tr>
+<tr>
+<td><code>generate_interview_prep</code></td>
+<td>Préparation d'entretien</td>
+<td>« Prépare le candidat à l'entretien pour cette offre. Génère 8 à 10 questions probables (catégories : technique, comportementale, motivation, lacune)… au moins une question par compétence manquante. »</td>
+<td>Niveau, langue, compétences manquantes, CV, offre</td>
+</tr>
+<tr>
+<td><code>rewrite_cv</code></td>
+<td>Réécriture du CV</td>
+<td>« Sélectionne 4 à 8 phrases/puces du CV qui gagneraient à être réécrites… verbe d'action, résultat mesurable, mots-clés de l'offre, sans inventer de faits… »</td>
+<td>Niveau, langue, compétences manquantes, CV, offre</td>
+</tr>
+<tr>
+<td><code>generate_learning_plan</code></td>
+<td>Plan d'apprentissage</td>
+<td>« Construis un plan d'apprentissage pour combler ces compétences manquantes… priority, estimated_weeks, 2 à 3 resources (URLs réelles uniquement), project_idea… »</td>
+<td>Niveau, langue, poste visé, compétences manquantes</td>
+</tr>
+<tr>
+<td><code>plan_job_search</code></td>
+<td>Plan de recherche d'offres</td>
+<td>« Tu prépares une recherche d'offres d'emploi pour ce candidat. Déduis du CV : target_titles (3 à 5 intitulés… en anglais ET en français), keywords (6 à 10 compétences)… »</td>
+<td>Niveau, langue, poste déclaré, compétences, CV</td>
+</tr>
+<tr>
+<td><code>rank_job_matches</code></td>
+<td>Classement des offres</td>
+<td>« Évalue l'adéquation entre le CV et CHAQUE offre ci-dessous (score 0-100…). Sois exigeant : une offre hors métier du candidat doit être sous 30. »</td>
+<td>Niveau, langue, CV (4 000 car.), offres compactées</td>
+</tr>
+</tbody>
+</table>
+<h3>4.3 Exemple complet — lettre de motivation</h3>
+<pre><code class="language-text">Rédige une lettre de motivation personnalisée. Réponds UNIQUEMENT en JSON strict avec la clé content.
+Le candidat est JUNIOR. Mets en avant les réalisations concrètes, outils maîtrisés et le travail en équipe.
+Ton dynamique, enthousiaste et motivé.
+Rédige tout le contenu textuel en français.
+Candidat: Karim Haddad
+Poste: Développeur Full-Stack
+Entreprise: Acme
+Schéma: {&quot;properties&quot;: {&quot;content&quot;: {&quot;type&quot;: &quot;string&quot;}}, &quot;required&quot;: [&quot;content&quot;], ...}
+
+CV:
+&lt;texte extrait du CV, 5 000 caractères max&gt;
+
+Offre:
+&lt;texte de l'offre, 5 000 caractères max&gt;
+</code></pre>
+<h3>4.4 Bonnes pratiques de prompt engineering appliquées</h3>
+<table>
+<thead>
+<tr>
+<th>Pratique</th>
+<th>Mise en œuvre</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Sortie structurée</td>
+<td>Schéma JSON fourni dans chaque prompt et validation Pydantic de la réponse</td>
+</tr>
+<tr>
+<td>Robustesse</td>
+<td>Extraction du JSON même entouré de balises Markdown, 3 tentatives, repli sur le mock</td>
+</tr>
+<tr>
+<td>Personnalisation</td>
+<td>Fragments réutilisables niveau / ton / langue</td>
+</tr>
+<tr>
+<td>Anti-hallucination</td>
+<td>« texte EXACT du CV », « sans inventer de faits », « URLs réelles uniquement »</td>
+</tr>
+<tr>
+<td>Maîtrise des coûts</td>
+<td>Textes tronqués (4 000 à 12 000 caractères), cache des réponses (<code>LLMCacheEntry</code>), quota et limitation de débit</td>
+</tr>
+<tr>
+<td>Évaluation exigeante</td>
+<td>« Sois exigeant : une offre hors métier du candidat doit être sous 30 »</td>
+</tr>
+</tbody>
+</table></body></html>

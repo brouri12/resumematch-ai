@@ -1,0 +1,66 @@
+@startuml cas-utilisation-administration
+!pragma layout smetana
+title ResumeMatch AI — Diagramme de cas d'utilisation (Administration)
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  ArrowColor #1F4D3E
+}
+skinparam rectangle {
+  BorderColor #2F8F73
+}
+
+actor "Candidat" as C
+actor "Administrateur" as A
+C <|-- A
+
+rectangle "Console d'administration" {
+  usecase "S'authentifier\n(compte is_staff)" as AUTH
+  usecase "Consulter les statistiques\n(utilisateurs, analyses, scores,\ncompétences manquantes)" as UA1
+  usecase "Gérer les utilisateurs" as UA2
+  usecase "Rechercher un utilisateur" as UA2a
+  usecase "Activer / désactiver un compte" as UA2b
+  usecase "Promouvoir administrateur" as UA2c
+  usecase "Modifier le niveau" as UA2d
+  usecase "Supprimer un utilisateur" as UA2e
+  usecase "Gérer les analyses\n(filtrer, supprimer)" as UA3
+  usecase "Superviser les tâches asynchrones\n(purger les tâches)" as UA4
+  usecase "Configurer la plateforme" as UA5
+  usecase "Définir le quota quotidien" as UA5a
+  usecase "Forcer le mode démo IA" as UA5b
+  usecase "Ouvrir / fermer les inscriptions" as UA5c
+  usecase "Publier une annonce globale" as UA5d
+  usecase "Vider le cache IA" as UA6
+  usecase "Initialiser les données de démo\n(commande seed_demo)" as UA7
+}
+
+A --> UA1
+A --> UA2
+A --> UA3
+A --> UA4
+A --> UA5
+A --> UA6
+A --> UA7
+
+UA1 ..> AUTH : <<include>>
+UA2 ..> AUTH : <<include>>
+UA3 ..> AUTH : <<include>>
+UA4 ..> AUTH : <<include>>
+UA5 ..> AUTH : <<include>>
+UA6 ..> AUTH : <<include>>
+
+UA2a ..> UA2 : <<extend>>
+UA2b ..> UA2 : <<extend>>
+UA2c ..> UA2 : <<extend>>
+UA2d ..> UA2 : <<extend>>
+UA2e ..> UA2 : <<extend>>
+
+UA5a ..> UA5 : <<extend>>
+UA5b ..> UA5 : <<extend>>
+UA5c ..> UA5 : <<extend>>
+UA5d ..> UA5 : <<extend>>
+@enduml

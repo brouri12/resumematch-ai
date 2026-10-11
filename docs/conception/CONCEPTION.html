@@ -1,0 +1,211 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><title>ResumeMatch AI — Dossier de conception UML</title><style>
+@page { size: A4; margin: 16mm 14mm; }
+body { font: 10.5pt/1.5 'Segoe UI', Calibri, sans-serif; color: #1c2b25; max-width: 1000px; margin: auto; padding: 24px; }
+h1 { color: #14352b; font-size: 24pt; border-bottom: 3px solid #2f8f73; padding-bottom: 6px; }
+h2 { color: #1f4d3e; font-size: 16pt; margin-top: 28px; border-bottom: 1px solid #cfe3d9; padding-bottom: 4px; page-break-after: avoid; }
+h3 { color: #1f4d3e; font-size: 12.5pt; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 9pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: #dcefe6; color: #14352b; text-align: left; }
+th, td { border: 1px solid #c4d8ce; padding: 5px 7px; vertical-align: top; }
+td img { width: 100%; border: 1px solid #c4d8ce; }
+p > img, body > p img { display: block; max-width: 100%; margin: 10px auto; border: 1px solid #c4d8ce; box-shadow: 0 2px 8px rgba(0,0,0,.08); page-break-inside: avoid; }
+code { font-family: Consolas, monospace; background: #eef4f1; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+pre { background: #0f1f19; color: #d7efe4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 8.5pt; page-break-inside: avoid; }
+pre code { background: none; color: inherit; }
+blockquote { border-left: 4px solid #2f8f73; margin: 10px 0; padding: 4px 12px; background: #f1f8f4; font-style: italic; }
+hr { border: none; border-top: 1px solid #cfe3d9; margin: 22px 0; }
+</style><body><h1>ResumeMatch AI — Dossier de conception UML</h1>
+<p>Ce dossier présente la modélisation UML de ResumeMatch AI (équipe CVisionnaires AI) : diagramme de classes, diagrammes de cas d'utilisation et diagrammes d'activité. Les diagrammes ont été produits avec <strong>PlantUML</strong> à partir du code réel de l'application (modèles Django, vues API, services et interface React).</p>
+<p>Les prompts utilisés pendant la création de l'application sont regroupés dans le document <strong>PROMPTS.md</strong> du même dossier.</p>
+<table>
+<thead>
+<tr>
+<th>Diagramme</th>
+<th>Type UML</th>
+<th>Source PlantUML</th>
+<th>Image</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Modèle de domaine</td>
+<td>Classes</td>
+<td><code>diagrammes/01-diagramme-classes.puml</code></td>
+<td><code>images/diagramme-classes.png</code></td>
+</tr>
+<tr>
+<td>Visiteur et Candidat</td>
+<td>Cas d'utilisation</td>
+<td><code>diagrammes/02-cas-utilisation-candidat.puml</code></td>
+<td><code>images/cas-utilisation-candidat.png</code></td>
+</tr>
+<tr>
+<td>Administration</td>
+<td>Cas d'utilisation</td>
+<td><code>diagrammes/03-cas-utilisation-administration.puml</code></td>
+<td><code>images/cas-utilisation-administration.png</code></td>
+</tr>
+<tr>
+<td>Lancer une analyse</td>
+<td>Activité</td>
+<td><code>diagrammes/04-activite-analyse.puml</code></td>
+<td><code>images/activite-analyse.png</code></td>
+</tr>
+<tr>
+<td>Rechercher des offres</td>
+<td>Activité</td>
+<td><code>diagrammes/05-activite-recherche-offres.puml</code></td>
+<td><code>images/activite-recherche-offres.png</code></td>
+</tr>
+<tr>
+<td>Authentification et session</td>
+<td>Activité</td>
+<td><code>diagrammes/06-activite-authentification.puml</code></td>
+<td><code>images/activite-authentification.png</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. Diagramme de classes</h2>
+<p><img alt="Diagramme de classes" src="images/diagramme-classes.png" /></p>
+<p>Le modèle de domaine correspond aux modèles Django des applications <code>accounts</code>, <code>cvs</code>, <code>analyses</code> et <code>adminpanel</code>, complétés par la couche <code>services</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Classe</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>User</code></td>
+<td>Hérite de <code>AbstractUser</code> (Django) ; ajoute le niveau (Étudiant / Junior / Confirmé) et le poste cible</td>
+</tr>
+<tr>
+<td><code>CV</code></td>
+<td>Fichier PDF importé, texte extrait et compétences structurées (<code>parsed_data</code>)</td>
+</tr>
+<tr>
+<td><code>JobOffer</code></td>
+<td>Offre d'emploi saisie ou importée par URL, avec son analyse structurée</td>
+</tr>
+<tr>
+<td><code>Analysis</code></td>
+<td>Confrontation d'un CV et d'une offre : score 0-100, compétences présentes / manquantes, recommandations, statut de candidature (Kanban) et outils carrière (<code>extras</code>)</td>
+</tr>
+<tr>
+<td><code>CoverLetter</code></td>
+<td>Lettre de motivation générée pour une analyse, dans un ton donné</td>
+</tr>
+<tr>
+<td><code>AnalysisJob</code></td>
+<td>Tâche asynchrone d'analyse (pending → running → done / failed) avec progression</td>
+</tr>
+<tr>
+<td><code>JobSearch</code></td>
+<td>Recherche d'offres par l'IA : paramètres, plan, résultats classés (10 dernières conservées)</td>
+</tr>
+<tr>
+<td><code>LLMCacheEntry</code></td>
+<td>Cache des réponses du LLM (clé unique = empreinte du prompt)</td>
+</tr>
+<tr>
+<td><code>SiteSettings</code></td>
+<td>Singleton de configuration : quota quotidien, mode démo forcé, inscriptions, annonce</td>
+</tr>
+<tr>
+<td><code>AIService</code></td>
+<td>Service IA indépendant du fournisseur, validation Pydantic et repli sur un moteur mock</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Relations principales :</strong></p>
+<ul>
+<li>un utilisateur possède (composition) ses CV, offres, analyses, tâches et recherches : leur suppression suit celle du compte ;</li>
+<li>une analyse relie exactement un CV et une offre ; un CV ou une offre peut servir à plusieurs analyses ;</li>
+<li>une analyse peut produire plusieurs lettres de motivation (tons différents, régénérations) ;</li>
+<li>une tâche asynchrone produit au plus une analyse ; une recherche d'offres s'appuie sur au plus un CV.</li>
+</ul>
+<hr />
+<h2>2. Diagrammes de cas d'utilisation</h2>
+<h3>2.1 Visiteur et Candidat</h3>
+<p><img alt="Cas d'utilisation — Visiteur et Candidat" src="images/cas-utilisation-candidat.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Acteur</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Visiteur</td>
+<td>Utilisateur non connecté : consulte la page d'accueil, s'inscrit, se connecte, change la langue</td>
+</tr>
+<tr>
+<td>Candidat</td>
+<td>Utilisateur connecté (hérite du Visiteur) : utilise toutes les fonctionnalités d'analyse</td>
+</tr>
+<tr>
+<td>Fournisseur IA</td>
+<td>Système externe : Claude, OpenAI, Gemini ou moteur démo hors ligne</td>
+</tr>
+<tr>
+<td>Sites d'offres</td>
+<td>Systèmes externes : Remotive, Arbeitnow, Jobicy, Adzuna, France Travail</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Relations remarquables :</strong></p>
+<ul>
+<li><em>Lancer une analyse</em> <strong>inclut</strong> l'extraction des compétences et le calcul du score ;</li>
+<li><em>Importer une offre par URL</em> <strong>étend</strong> le lancement d'une analyse (option) ;</li>
+<li><em>Comparer plusieurs offres</em> <strong>inclut</strong> une analyse par offre ;</li>
+<li><em>Exporter la lettre</em> <strong>étend</strong> la génération de la lettre de motivation ;</li>
+<li><em>Rechercher des offres avec l'IA</em> <strong>inclut</strong> l'extraction des compétences et sollicite les deux systèmes externes.</li>
+</ul>
+<h3>2.2 Administration</h3>
+<p><img alt="Cas d'utilisation — Administration" src="images/cas-utilisation-administration.png" /></p>
+<p>L'<strong>Administrateur</strong> hérite du Candidat : il dispose de toutes les fonctionnalités candidat, plus la console d'administration. Chaque cas d'administration <strong>inclut</strong> l'authentification avec un compte <code>is_staff</code>. La gestion des utilisateurs (recherche, activation, promotion, niveau, suppression) et la configuration de la plateforme (quota, mode démo, inscriptions, annonce) sont modélisées comme des <strong>extensions</strong>.</p>
+<hr />
+<h2>3. Diagrammes d'activité</h2>
+<p>Les diagrammes d'activité utilisent des <strong>couloirs (swimlanes)</strong> pour montrer qui réalise chaque action : le candidat, l'interface React, l'API Django ou le service IA.</p>
+<h3>3.1 Lancer une analyse CV / offre</h3>
+<p><img alt="Activité — Lancer une analyse" src="images/activite-analyse.png" /></p>
+<p>Étapes clés :</p>
+<ul>
+<li>import et validation du CV PDF (5 Mo maximum), extraction du texte puis des compétences par l'IA ;</li>
+<li>offre collée ou importée par URL (protection anti-SSRF) ;</li>
+<li>vérification du quota quotidien : réponse <strong>429</strong> si atteint ;</li>
+<li>création d'une tâche <code>AnalysisJob</code> et réponse <strong>202</strong> immédiate ;</li>
+<li><strong>en parallèle</strong> : l'API exécute l'analyse en arrière-plan (analyse de l'offre, score compétences, score sémantique, combinaison 55 % / 45 % ajustée selon le niveau, recommandations) pendant que l'interface interroge la tâche avec un intervalle croissant (250 ms → 1,5 s) ;</li>
+<li>redirection vers la page de résultats ou affichage de l'erreur.</li>
+</ul>
+<h3>3.2 Rechercher des offres avec l'IA</h3>
+<p><img alt="Activité — Rechercher des offres" src="images/activite-recherche-offres.png" /></p>
+<p>Étapes clés :</p>
+<ul>
+<li>contrôle du texte du CV (réponse <strong>400</strong> s'il est vide) et réutilisation des compétences déjà extraites ;</li>
+<li>construction par l'IA d'un plan de recherche (intitulés FR / EN, mots-clés, séniorité) ;</li>
+<li>interrogation <strong>en parallèle</strong> des 5 sources (cache d'une heure, 8 s maximum par source, une source en échec est ignorée) ; réponse <strong>502</strong> si toutes échouent ;</li>
+<li>dédoublonnage, filtrage par lieu / télétravail, pré-classement local puis classement par l'IA ;</li>
+<li>conservation des 20 meilleures offres et enregistrement de la recherche (10 dernières conservées) ;</li>
+<li>possibilité d'ouvrir l'assistant d'analyse pré-rempli avec une offre.</li>
+</ul>
+<h3>3.3 Inscription, connexion et session JWT</h3>
+<p><img alt="Activité — Authentification" src="images/activite-authentification.png" /></p>
+<p>Étapes clés :</p>
+<ul>
+<li>inscription : contrôle de l'ouverture des inscriptions (<strong>403</strong> si fermées), validation (e-mail unique, mots de passe identiques et robustes), mot de passe haché en PBKDF2 ;</li>
+<li>connexion : émission d'un jeton d'accès (60 min) et d'un jeton de rafraîchissement (7 jours), stockés dans le navigateur ;</li>
+<li>à chaque appel, si le jeton d'accès a expiré (<strong>401</strong>), l'interface demande un nouveau jeton et rejoue la requête ; si le jeton de rafraîchissement est invalide, elle efface la session et redirige vers la connexion ;</li>
+<li>déconnexion : suppression des jetons.</li>
+</ul>
+<hr />
+<h2>4. Régénérer les diagrammes</h2>
+<p>Prérequis : Java 17 ou plus et <code>plantuml.jar</code> (aucune installation de Graphviz nécessaire, le moteur intégré <em>smetana</em> est utilisé).</p>
+<pre><code class="language-text">cd docs/conception/diagrammes
+java -jar plantuml.jar -charset UTF-8 -tpng -o ../images *.puml
+java -jar plantuml.jar -charset UTF-8 -tsvg -o ../images *.puml
+</code></pre></body></html>

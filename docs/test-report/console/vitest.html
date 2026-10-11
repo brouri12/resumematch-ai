@@ -1,0 +1,79 @@
+<!doctype html><meta charset="utf-8"><title>vitest</title>
+<style>
+body{margin:0;background:#0d1117;font:13px/1.45 Consolas,'Cascadia Mono',monospace;color:#c9d1d9}
+.bar{background:#161b22;padding:10px 16px;border-bottom:1px solid #30363d;color:#8b949e}
+.bar b{color:#58a6ff} .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+pre{margin:0;padding:16px;white-space:pre-wrap} .ok{color:#3fb950} .ko{color:#f85149}
+</style>
+<div class="bar"><span class="dot" style="background:#f85149"></span><span class="dot" style="background:#d29922"></span><span class="dot" style="background:#3fb950"></span>
+&nbsp;PS C:\resumematch-ai&gt; <b>npx vitest run --coverage</b></div>
+<pre> Ô£ô src/lib/helpers.test.js &gt; scoreTone &gt; buckets scores at 70 and 45 1ms
+ Ô£ô src/lib/helpers.test.js &gt; jobOfferText &gt; prefixes the description with the fields the analyzer parses 0ms
+ Ô£ô src/lib/helpers.test.js &gt; jobOfferText &gt; skips empty fields 0ms
+ Ô£ô src/lib/helpers.test.js &gt; groupByStatus &gt; puts every item in its column and unknown statuses in to_apply 0ms
+ Ô£ô src/lib/helpers.test.js &gt; score chart &gt; maps 100 to the top and 0 to the bottom of the drawing area 0ms
+ Ô£ô src/lib/helpers.test.js &gt; score chart &gt; clamps out-of-range scores and centers a single point 0ms
+ Ô£ô src/lib/helpers.test.js &gt; score chart &gt; builds an SVG path 0ms
+ Ô£ô src/lib/helpers.test.js &gt; score chart &gt; computes the trend between first and last score 0ms
+ Ô£ô src/lib/helpers.test.js &gt; rankJobs &gt; ranks finished jobs by score, unfinished ones last 0ms
+ Ô£ô src/lib/helpers.test.js &gt; misc &gt; sums learning weeks 0ms
+ Ô£ô src/lib/helpers.test.js &gt; misc &gt; only accepts http(s) URLs 0ms
+ Ô£ô src/lib/i18n.test.js &gt; translate &gt; returns the string for the requested language 2ms
+ Ô£ô src/lib/i18n.test.js &gt; translate &gt; interpolates variables and leaves unknown placeholders intact 0ms
+ Ô£ô src/lib/i18n.test.js &gt; translate &gt; falls back to French, then to the key itself 0ms
+ Ô£ô src/lib/i18n.test.js &gt; detectLanguage &gt; prefers a valid stored value, then the browser language, then French 0ms
+ Ô£ô src/lib/i18n.test.js &gt; translations &gt; has the same keys in every language 1ms
+ Ô£ô src/lib/i18n.test.js &gt; translations &gt; keeps the same placeholders across languages 4ms
+
+<span class="ok"> Test Files  2 passed (2)</span>
+<span class="ok">      Tests  19 passed (19)</span>
+   Start at  14:27:43
+   Duration  649ms (transform 73ms, setup 0ms, import 108ms, tests 15ms, environment 0ms)
+
+ % Coverage report from v8
+-------------------|---------|----------|---------|---------|-------------------
+File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s
+-------------------|---------|----------|---------|---------|-------------------
+All files          |    4.42 |     6.24 |    3.85 |    3.94 |
+ src               |       0 |        0 |       0 |       0 |
+  App.jsx          |       0 |      100 |       0 |       0 | 13-81
+  api.js           |       0 |        0 |       0 |       0 | 1-196
+  main.jsx         |       0 |      100 |     100 |       0 | 6
+ src/components    |       0 |        0 |       0 |       0 |
+  AdminRoute.jsx   |       0 |        0 |       0 |       0 | 5-9
+  Navbar.jsx       |       0 |        0 |       0 |       0 | 10-181
+  ...UrlImport.jsx |       0 |        0 |       0 |       0 | 7-39
+  ...ctedRoute.jsx |       0 |        0 |       0 |       0 | 6-16
+  ResultExtras.jsx |       0 |        0 |       0 |       0 | 10-306
+  ...eTimeline.jsx |       0 |        0 |       0 |       0 | 8-82
+  motion.jsx       |       0 |        0 |       0 |       0 | 12-254
+  ui.jsx           |       0 |        0 |       0 |       0 | 7-199
+ src/context       |       0 |        0 |       0 |       0 |
+  AuthContext.jsx  |       0 |        0 |       0 |       0 | 4-69
+  I18nContext.jsx  |       0 |        0 |       0 |       0 | 4-26
+  ...usContext.jsx |       0 |      100 |       0 |       0 | 5-29
+ src/lib           |      90 |    84.61 |      90 |   89.58 |
+  helpers.js       |   97.67 |    93.61 |     100 |     100 | 13,45,58
+  i18n.js          |     100 |    84.61 |     100 |     100 | 7,14
+  sources.js       |       0 |        0 |       0 |       0 | 1-26
+ src/pages         |       0 |        0 |       0 |       0 |
+  ...boardPage.jsx |       0 |        0 |       0 |       0 | 12-614
+  ...izardPage.jsx |       0 |        0 |       0 |       0 | 12-399
+  ...BoardPage.jsx |       0 |        0 |       0 |       0 | 10-120
+  ComparePage.jsx  |       0 |        0 |       0 |       0 | 13-190
+  ...boardPage.jsx |       0 |        0 |       0 |       0 | 12-129
+  HistoryPage.jsx  |       0 |        0 |       0 |       0 | 9-206
+  ...earchPage.jsx |       0 |        0 |       0 |       0 | 14-380
+  LandingPage.jsx  |       0 |        0 |       0 |       0 | 18-397
+  LoginPage.jsx    |       0 |        0 |       0 |       0 | 9-57
+  ProfilePage.jsx  |       0 |        0 |       0 |       0 | 8-119
+  RegisterPage.jsx |       0 |        0 |       0 |       0 | 9-89
+  ResultsPage.jsx  |       0 |        0 |       0 |       0 | 12-312
+-------------------|---------|----------|---------|---------|-------------------
+
+=============================== Coverage summary ===============================
+Statements   : 4.42% ( 54/1220 )
+Branches     : 6.24% ( 55/881 )
+Functions    : 3.85% ( 18/467 )
+Lines        : 3.94% ( 43/1090 )
+================================================================================</pre>

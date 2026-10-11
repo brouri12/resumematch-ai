@@ -1,0 +1,57 @@
+<!doctype html><meta charset="utf-8"><title>django-tests</title>
+<style>
+body{margin:0;background:#0d1117;font:13px/1.45 Consolas,'Cascadia Mono',monospace;color:#c9d1d9}
+.bar{background:#161b22;padding:10px 16px;border-bottom:1px solid #30363d;color:#8b949e}
+.bar b{color:#58a6ff} .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+pre{margin:0;padding:16px;white-space:pre-wrap} .ok{color:#3fb950} .ko{color:#f85149}
+</style>
+<div class="bar"><span class="dot" style="background:#f85149"></span><span class="dot" style="background:#d29922"></span><span class="dot" style="background:#3fb950"></span>
+&nbsp;PS C:\resumematch-ai&gt; <b>python manage.py test -v 2  (coverage run)</b></div>
+<pre><span class="ok">test_clear_cache (adminpanel.tests.AdminPanelTests.test_clear_cache) ... ok</span>
+<span class="ok">test_delete_user_cascades (adminpanel.tests.AdminPanelTests.test_delete_user_cascades) ... ok</span>
+<span class="ok">test_force_mock_overrides_api_key (adminpanel.tests.AdminPanelTests.test_force_mock_overrides_api_key) ... ok</span>
+<span class="ok">test_jobs_list_and_purge (adminpanel.tests.AdminPanelTests.test_jobs_list_and_purge) ... ok</span>
+<span class="ok">test_me_exposes_is_staff (adminpanel.tests.AdminPanelTests.test_me_exposes_is_staff) ... ok</span>
+<span class="ok">test_non_staff_is_forbidden (adminpanel.tests.AdminPanelTests.test_non_staff_is_forbidden) ... ok</span>
+<span class="ok">test_overview_aggregates (adminpanel.tests.AdminPanelTests.test_overview_aggregates) ... ok</span>
+<span class="ok">test_registration_can_be_closed (adminpanel.tests.AdminPanelTests.test_registration_can_be_closed) ... ok</span>
+<span class="ok">(adminpanel.tests.AdminPanelTests.test_seed_creates_personas_with_varied_statuses) ... ok</span>
+<span class="ok">(adminpanel.tests.AdminPanelTests.test_seed_is_idempotent_and_reset_recreates) ... ok</span>
+<span class="ok">test_user_search_and_toggle_active (adminpanel.tests.AdminPanelTests.test_user_search_and_toggle_active) ... ok</span>
+<span class="ok">(adminpanel.tests.PdfBuilderTests.test_generated_pdf_is_readable_with_accents_and_pages) ... ok</span>
+<span class="ok">(analyses.tests.AnalysisApiTests.test_async_job_completes_and_exposes_analysis) ... ok</span>
+<span class="ok">test_compare_creates_one_job_per_offer (analyses.tests.AnalysisApiTests.test_compare_creates_one_job_per_offer) ... ok</span>
+<span class="ok">(analyses.tests.AnalysisApiTests.test_create_analysis_records_mock_mode_and_language) ... ok</span>
+<span class="ok">test_daily_quota_blocks_extra_analyses (analyses.tests.AnalysisApiTests.test_daily_quota_blocks_extra_analyses) ... ok</span>
+test_extras_are_generated_then_cached (analyses.tests.AnalysisApiTests.test_extras_are_generated_then_cached) ... ATS
+<span class="ok">test_import_url_endpoint (analyses.tests.AnalysisApiTests.test_import_url_endpoint) ... ok</span>
+<span class="ok">(analyses.tests.AnalysisApiTests.test_other_users_cannot_read_jobs_or_extras) ... ok</span>
+<span class="ok">test_report_export_is_docx (analyses.tests.AnalysisApiTests.test_report_export_is_docx) ... ok</span>
+<span class="ok">test_system_status_reports_mock_mode (analyses.tests.AnalysisApiTests.test_system_status_reports_mock_mode) ... ok</span>
+<span class="ok">test_unknown_extra_kind_is_404 (analyses.tests.AnalysisApiTests.test_unknown_extra_kind_is_404) ... ok</span>
+<span class="ok">test_generation_is_not_cached (services.tests_features.AIServiceLiveTests.test_generation_is_not_cached) ... ok</span>
+(services.tests_features.AIServiceLiveTests.test_invalid_json_retries_then_falls_back_to_mock) ... LLM JSON validation
+<span class="ok">(services.tests_features.AIServiceLiveTests.test_job_parsing_is_cached_after_first_live_call) ... ok</span>
+<span class="ok">test_language_is_passed_to_prompt (services.tests_features.AIServiceLiveTests.test_language_is_passed_to_prompt) ... ok</span>
+<span class="ok">test_clean_cv_scores_high (services.tests_features.ATSTests.test_clean_cv_scores_high) ... ok</span>
+<span class="ok">test_column_detection (services.tests_features.ATSTests.test_column_detection) ... ok</span>
+<span class="ok">(services.tests_features.ATSTests.test_keyword_match_requires_word_boundaries) ... ok</span>
+<span class="ok">test_problematic_layout_is_penalized (services.tests_features.ATSTests.test_problematic_layout_is_penalized) ... ok</span>
+<span class="ok">(services.tests_features.JobImportTests.test_html_fallback_skips_navigation_and_scripts) ... ok</span>
+<span class="ok">test_private_addresses_are_rejected (services.tests_features.JobImportTests.test_private_addresses_are_rejected) ... ok</span>
+<span class="ok">test_custom_query_leads_the_plan (services.tests_job_search.JobSearchApiTests.test_custom_query_leads_the_plan) ... ok</span>
+<span class="ok">(services.tests_job_search.JobSearchApiTests.test_featured_is_public_tech_only_and_cached) ... ok</span>
+<span class="ok">test_keeps_only_recent_searches (services.tests_job_search.JobSearchApiTests.test_keeps_only_recent_searches) ... ok</span>
+<span class="ok">(services.tests_job_search.JobSearchApiTests.test_other_users_cannot_read_or_use_cv) ... ok</span>
+<span class="ok">(services.tests_job_search.JobSearchApiTests.test_search_ranks_relevant_offers_and_persists) ... ok</span>
+<span class="ok">test_overlap_score (services.tests_scoring.ScoringTests.test_overlap_score) ... ok</span>
+<span class="ok">test_synonyms (services.tests_scoring.ScoringTests.test_synonyms) ... ok</span>
+<span class="ok">test_cache_avoids_refetching_feeds (services.tests_job_search.CollectTests.test_cache_avoids_refetching_feeds) ... ok</span>
+<span class="ko">(services.tests_job_search.CollectTests.test_dedupes_and_reports_failing_source) ... Job source arbeitnow failed:</span>
+<span class="ok">(services.tests_job_search.CollectTests.test_disabled_keyed_sources_are_skipped) ... ok</span>
+<span class="ok">test_location_filter (services.tests_job_search.ScoringTests.test_location_filter) ... ok</span>
+<span class="ok">(services.tests_job_search.ScoringTests.test_relevant_offer_outscores_unrelated_one) ... ok</span>
+<span class="ok">test_skills_require_word_boundaries (services.tests_job_search.ScoringTests.test_skills_require_word_boundaries) ... ok</span>
+<span class="ok">(services.tests_job_search.ScoringTests.test_title_similarity_handles_aliases_and_compounds) ... ok</span>
+Ran 52 tests in 12.856s
+<span class="ok">OK</span></pre>

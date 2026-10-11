@@ -1,0 +1,53 @@
+<!doctype html><meta charset="utf-8"><title>coverage-backend</title>
+<style>
+body{margin:0;background:#0d1117;font:13px/1.45 Consolas,'Cascadia Mono',monospace;color:#c9d1d9}
+.bar{background:#161b22;padding:10px 16px;border-bottom:1px solid #30363d;color:#8b949e}
+.bar b{color:#58a6ff} .dot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px}
+pre{margin:0;padding:16px;white-space:pre-wrap} .ok{color:#3fb950} .ko{color:#f85149}
+</style>
+<div class="bar"><span class="dot" style="background:#f85149"></span><span class="dot" style="background:#d29922"></span><span class="dot" style="background:#3fb950"></span>
+&nbsp;PS C:\resumematch-ai&gt; <b>coverage report --sort=cover</b></div>
+<pre>Name                                          Stmts   Miss  Cover
+-----------------------------------------------------------------
+cvs\views.py                                     31     17    45%
+services\pdf_service.py                          38     18    53%
+cvs\serializers.py                               17      7    59%
+accounts\serializers.py                          35     13    63%
+analyses\views.py                               268     95    65%
+services\job_import_service.py                  147     37    75%
+adminpanel\admin.py                               9      2    78%
+services\job_search_service.py                  234     47    80%
+accounts\views.py                                31      6    81%
+analyses\services.py                            181     32    82%
+services\ai_service.py                          428     65    85%
+adminpanel\views.py                             118     12    90%
+accounts\models.py                               11      1    91%
+cvs\models.py                                    13      1    92%
+analyses\models.py                               97      6    94%
+services\scoring.py                              57      3    95%
+services\ats_service.py                         108      5    95%
+adminpanel\models.py                             22      1    95%
+adminpanel\management\commands\seed_demo.py      77      1    99%
+accounts\__init__.py                              0      0   100%
+accounts\admin.py                                 8      0   100%
+accounts\apps.py                                  4      0   100%
+accounts\urls.py                                  3      0   100%
+adminpanel\__init__.py                            0      0   100%
+adminpanel\apps.py                                5      0   100%
+adminpanel\demo_data.py                          50      0   100%
+adminpanel\management\__init__.py                 0      0   100%
+adminpanel\management\commands\__init__.py        0      0   100%
+adminpanel\serializers.py                        38      0   100%
+adminpanel\urls.py                                3      0   100%
+analyses\__init__.py                              0      0   100%
+analyses\admin.py                                25      0   100%
+analyses\apps.py                                  4      0   100%
+analyses\serializers.py                          91      0   100%
+analyses\urls.py                                  3      0   100%
+cvs\__init__.py                                   0      0   100%
+cvs\admin.py                                      6      0   100%
+cvs\apps.py                                       4      0   100%
+cvs\urls.py                                       3      0   100%
+services\__init__.py                              0      0   100%
+-----------------------------------------------------------------
+TOTAL                                          2169    369    83%</pre>

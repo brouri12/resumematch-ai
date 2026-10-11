@@ -1,0 +1,102 @@
+@startuml activite-analyse
+title ResumeMatch AI — Diagramme d'activité : lancer une analyse CV / offre
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam activity {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  DiamondBackgroundColor #DCEFE6
+  DiamondBorderColor #1F4D3E
+}
+skinparam swimlane {
+  BorderColor #2F8F73
+  TitleFontColor #14352B
+}
+
+|Candidat|
+start
+:Ouvrir « Nouvelle analyse »;
+if (Un CV est déjà importé ?) then (non)
+  :Importer un CV PDF (max 5 Mo);
+  |API Django|
+  if (Fichier PDF valide ?) then (non)
+    |Interface React|
+    :Afficher l'erreur;
+    |Candidat|
+    stop
+  else (oui)
+    |API Django|
+    :Extraire le texte (pdfplumber / PyPDF2);
+    |Service IA|
+    :Extraire les compétences du CV;
+    |API Django|
+    :Enregistrer le CV;
+  endif
+  |Candidat|
+endif
+:Sélectionner le CV;
+if (Importer l'offre depuis une URL ?) then (oui)
+  :Coller l'URL de l'offre;
+  |API Django|
+  :Vérifier l'URL (anti-SSRF) et\nrécupérer le texte de la page;
+  |Candidat|
+else (non)
+  :Coller le texte de l'offre;
+endif
+:Choisir le niveau\n(Étudiant / Junior / Confirmé);
+:Vérifier le récapitulatif et choisir la langue;
+:Cliquer « Lancer l'analyse »;
+
+|API Django|
+if (Quota quotidien atteint ?) then (oui)
+  :Répondre 429 « Quota atteint »;
+  |Interface React|
+  :Afficher le message de quota;
+  |Candidat|
+  stop
+else (non)
+  |API Django|
+  :Créer une tâche AnalysisJob (pending);
+  :Répondre 202 avec l'identifiant de tâche;
+endif
+
+fork
+  |Interface React|
+  :Afficher l'écran de progression;
+  repeat
+    :Interroger GET /analysis-jobs/{id}\n(250 ms → 1,5 s);
+    :Mettre à jour la barre de progression;
+  repeat while (Tâche terminée ?) is (non)
+  -> oui;
+fork again
+  |API Django|
+  :Exécuter l'analyse en arrière-plan;
+  |Service IA|
+  :Analyser l'offre\n(compétences requises, nice-to-have, séniorité);
+  |API Django|
+  :Calculer le score compétences\n(recouvrement + synonymes);
+  |Service IA|
+  :Évaluer la compatibilité sémantique (0-100);
+  |API Django|
+  :Combiner les scores\n(55 % compétences, 45 % sémantique,\najusté selon le niveau);
+  |Service IA|
+  :Générer les recommandations;
+  |API Django|
+  :Enregistrer Analysis + JobOffer;
+  :Marquer la tâche « done » (100 %);
+end fork
+
+|Interface React|
+if (État de la tâche ?) then (failed)
+  :Afficher l'erreur;
+  |Candidat|
+  stop
+else (done)
+  |Interface React|
+  :Rediriger vers /resultats/{id};
+  :Afficher la jauge de score, les compétences\nprésentes / manquantes et les recommandations;
+endif
+|Candidat|
+:Consulter le résultat;
+stop
+@enduml

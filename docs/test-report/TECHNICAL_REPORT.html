@@ -1,0 +1,1380 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>ResumeMatch AI — Technical Test Report</title><style>
+@page { size: A4; margin: 16mm 14mm; }
+body { font: 10.5pt/1.5 'Segoe UI', Calibri, sans-serif; color: #1c2b25; max-width: 1000px; margin: auto; padding: 24px; }
+h1 { color: #14352b; font-size: 24pt; border-bottom: 3px solid #2f8f73; padding-bottom: 6px; }
+h2 { color: #1f4d3e; font-size: 16pt; margin-top: 28px; border-bottom: 1px solid #cfe3d9; padding-bottom: 4px; page-break-after: avoid; }
+h3 { color: #1f4d3e; font-size: 12.5pt; page-break-after: avoid; }
+table { border-collapse: collapse; width: 100%; margin: 10px 0 16px; font-size: 9pt; page-break-inside: auto; }
+tr { page-break-inside: avoid; }
+th { background: #dcefe6; color: #14352b; text-align: left; }
+th, td { border: 1px solid #c4d8ce; padding: 5px 7px; vertical-align: top; }
+td img { width: 100%; border: 1px solid #c4d8ce; }
+p > img, body > p img { display: block; max-width: 100%; margin: 10px auto; border: 1px solid #c4d8ce; box-shadow: 0 2px 8px rgba(0,0,0,.08); page-break-inside: avoid; }
+code { font-family: Consolas, monospace; background: #eef4f1; padding: 1px 4px; border-radius: 3px; font-size: 9pt; }
+pre { background: #0f1f19; color: #d7efe4; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 8.5pt; page-break-inside: avoid; }
+pre code { background: none; color: inherit; }
+blockquote { border-left: 4px solid #2f8f73; margin: 10px 0; padding: 4px 12px; background: #f1f8f4; font-style: italic; }
+hr { border: none; border-top: 1px solid #cfe3d9; margin: 22px 0; }
+</style><body><h1>ResumeMatch AI — Technical Test Report</h1>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Project</strong></td>
+<td>ResumeMatch AI (CVisionnaires AI) — CV / job-offer matching platform</td>
+</tr>
+<tr>
+<td><strong>Version tested</strong></td>
+<td><code>main</code> @ <code>4c99d1f</code> (+ test tooling)</td>
+</tr>
+<tr>
+<td><strong>Test date</strong></td>
+<td>11 October 2026</td>
+</tr>
+<tr>
+<td><strong>Environment</strong></td>
+<td>Windows 11 · Python 3.14.3 · Django 5.2.18 · DRF 3.18.3 · Node 24.14.1 · React 19 · Vite 8 · SQLite · AI engine in <em>demo (mock) mode</em></td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Django test runner + Coverage.py · Vitest · Playwright · Locust · Lighthouse</td>
+</tr>
+<tr>
+<td><strong>Design</strong></td>
+<td>UML class, use case and activity diagrams (PlantUML) — section 3</td>
+</tr>
+<tr>
+<td><strong>Prompts</strong></td>
+<td>Development prompts given to the Cursor agent and LLM prompts embedded in the app — section 4</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>1. Executive summary</h2>
+<p>The full application (Django REST API + React SPA) was tested with <strong>five complementary tools</strong>, each covering a different level of the test pyramid: backend unit/integration tests, frontend unit tests, browser end-to-end tests, load testing and a quality audit.</p>
+<table>
+<thead>
+<tr>
+<th>Indicator</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Automated functional tests executed</td>
+<td><strong>86</strong> (52 backend + 19 frontend + 15 end-to-end)</td>
+</tr>
+<tr>
+<td>Functional tests passed</td>
+<td><strong>86 / 86 (100 %)</strong></td>
+</tr>
+<tr>
+<td>Backend code coverage</td>
+<td><strong>83 %</strong> of statements (2 169 statements, 369 missed)</td>
+</tr>
+<tr>
+<td>Frontend unit coverage</td>
+<td><strong>90 %</strong> of <code>src/lib</code> business logic — <strong>4.4 %</strong> of the whole <code>src</code> tree</td>
+</tr>
+<tr>
+<td>API under normal load (20 users)</td>
+<td><strong>975 requests, 0 errors</strong>, median <strong>7 ms</strong>, p95 <strong>23 ms</strong></td>
+</tr>
+<tr>
+<td>API under stress (100 users)</td>
+<td><strong>4 517 requests</strong>, median <strong>10 ms</strong>, p95 <strong>97 ms</strong>; the only errors (3.4 %) are intentional <code>429</code> quota responses</td>
+</tr>
+<tr>
+<td>Lighthouse (desktop)</td>
+<td>Performance <strong>89–98</strong>, Accessibility <strong>100</strong>, Best practices <strong>100</strong>, SEO <strong>82–83</strong></td>
+</tr>
+<tr>
+<td>Lighthouse (mobile landing page)</td>
+<td>Performance <strong>65</strong> (LCP 7.1 s)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Verdict:</strong> the application is functionally stable — every user journey works end to end, the API is fast and did not produce a single server error under load, and accessibility/best-practice audits are perfect. The main improvement areas are <strong>mobile loading performance of the landing page</strong>, <strong>SEO metadata</strong>, <strong>unit tests for React components</strong>, and the <strong>cost of login under concurrent load</strong>.</p>
+<hr />
+<h2>2. System under test</h2>
+<pre><code>Browser (React 19 SPA, Vite)  ──/api──►  Django 5 + DRF (JWT auth)  ──►  SQLite
+                                               │
+                                               ├── AI service (Anthropic/OpenAI/Gemini, or deterministic mock)
+                                               └── Job feeds (Remotive, Arbeitnow, Jobicy, Adzuna, France Travail)
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>Module</th>
+<th>Backend app</th>
+<th>Main frontend pages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td><code>accounts</code></td>
+<td>Landing, Login, Register, Profile</td>
+</tr>
+<tr>
+<td>CV management</td>
+<td><code>cvs</code>, <code>pdf_service</code>, <code>ats_service</code></td>
+<td>Analysis wizard (upload step)</td>
+</tr>
+<tr>
+<td>Analysis engine</td>
+<td><code>analyses</code>, <code>ai_service</code>, <code>scoring</code></td>
+<td>Wizard, Results, History, Compare, Dashboard</td>
+</tr>
+<tr>
+<td>Job search</td>
+<td><code>job_search_service</code>, <code>job_import_service</code></td>
+<td>Job search, Application board</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td><code>adminpanel</code></td>
+<td>Admin console</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Test data:</strong> the database was seeded with the built-in <code>seed_demo</code> command (1 admin, 3 candidates — Sarah, Karim, Léa — with CVs, analyses and cover letters). The developer database was backed up before testing and restored afterwards.</p>
+<p><strong>AI mode:</strong> no LLM API key is configured, so the AI engine ran in its deterministic <em>demo</em> mode. Response times therefore measure the application itself, not a third-party AI provider.</p>
+<hr />
+<h2>3. Software design — UML diagrams</h2>
+<p>The application was modelled with <strong>PlantUML</strong> from its actual code (Django models, API views, services and React pages). Diagram labels are in French, the project's working language. Sources are in <code>docs/conception/diagrammes/</code>; PNG and SVG renderings are in <code>docs/conception/images/</code>.</p>
+<table>
+<thead>
+<tr>
+<th>Diagram</th>
+<th>UML type</th>
+<th>What it shows</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Domain model</td>
+<td>Class</td>
+<td>Entities, attributes, enumerations, multiplicities and service dependencies</td>
+</tr>
+<tr>
+<td>Visitor and Candidate</td>
+<td>Use case</td>
+<td>21 use cases with include / extend relations and two external systems</td>
+</tr>
+<tr>
+<td>Administration</td>
+<td>Use case</td>
+<td>Admin console features, all requiring an <code>is_staff</code> account</td>
+</tr>
+<tr>
+<td>Run a CV / job analysis</td>
+<td>Activity</td>
+<td>Upload, quota check, asynchronous job and progress polling</td>
+</tr>
+<tr>
+<td>AI job search</td>
+<td>Activity</td>
+<td>Search plan, 5 job sources in parallel, filtering and AI ranking</td>
+</tr>
+<tr>
+<td>Registration, login and JWT session</td>
+<td>Activity</td>
+<td>Sign-up, login, automatic token refresh and logout</td>
+</tr>
+</tbody>
+</table>
+<h3>3.1 Class diagram</h3>
+<p><img alt="Class diagram — domain model" src="../conception/images/diagramme-classes.png" /></p>
+<table>
+<thead>
+<tr>
+<th>Class</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>User</code></td>
+<td>Extends Django's <code>AbstractUser</code> with a level (student / junior / senior) and a target job title</td>
+</tr>
+<tr>
+<td><code>CV</code></td>
+<td>Uploaded PDF, extracted text and structured skills (<code>parsed_data</code>)</td>
+</tr>
+<tr>
+<td><code>JobOffer</code></td>
+<td>Job offer pasted or imported from a URL, with its structured analysis</td>
+</tr>
+<tr>
+<td><code>Analysis</code></td>
+<td>Matches one CV with one offer: score 0–100, present / missing skills, recommendations, application status (Kanban) and career-toolkit results (<code>extras</code>)</td>
+</tr>
+<tr>
+<td><code>CoverLetter</code></td>
+<td>Cover letter generated for an analysis in a given tone</td>
+</tr>
+<tr>
+<td><code>AnalysisJob</code></td>
+<td>Asynchronous analysis task (pending → running → done / failed) with progress</td>
+</tr>
+<tr>
+<td><code>JobSearch</code></td>
+<td>AI job search: parameters, plan and ranked results (last 10 kept per user)</td>
+</tr>
+<tr>
+<td><code>LLMCacheEntry</code></td>
+<td>Cache of LLM answers, keyed by a hash of the prompt</td>
+</tr>
+<tr>
+<td><code>SiteSettings</code></td>
+<td>Configuration singleton: daily quota, forced demo mode, registrations, announcement</td>
+</tr>
+<tr>
+<td><code>AIService</code></td>
+<td>Provider-agnostic AI service with Pydantic validation and mock fallback</td>
+</tr>
+</tbody>
+</table>
+<p>A user <strong>owns</strong> (composition, <code>on_delete=CASCADE</code>) their CVs, offers, analyses, jobs and searches. An analysis links exactly one CV and one offer, while a CV or an offer can be reused in many analyses. An <code>AnalysisJob</code> produces at most one analysis, and a <code>JobSearch</code> is based on at most one CV (both <code>SET_NULL</code>).</p>
+<h3>3.2 Use case diagrams</h3>
+<p><img alt="Use cases — Visitor and Candidate" src="../conception/images/cas-utilisation-candidat.png" /></p>
+<p>The <strong>Visitor</strong> can browse the landing page, register, log in and switch language. The <strong>Candidate</strong> inherits these and uses every analysis feature. <em>Run an analysis</em> includes skill extraction and score calculation; <em>import an offer from a URL</em> extends it; <em>export the cover letter</em> extends cover-letter generation. The AI provider (Claude, OpenAI, Gemini or the demo engine) and the job sites (Remotive, Arbeitnow, Jobicy, Adzuna, France Travail) are external system actors.</p>
+<p><img alt="Use cases — Administration" src="../conception/images/cas-utilisation-administration.png" /></p>
+<p>The <strong>Administrator</strong> inherits from the Candidate. Every administration use case includes authentication with an <code>is_staff</code> account. User management (search, activate, promote, change level, delete) and platform configuration (quota, demo mode, registrations, announcement) are modelled as extensions.</p>
+<h3>3.3 Activity diagrams</h3>
+<p>Swimlanes show who performs each action: the candidate, the React interface, the Django API or the AI service.</p>
+<p><img alt="Activity — run a CV / job analysis" src="../conception/images/activite-analyse.png" /></p>
+<p>The CV is validated (PDF, 5 MB maximum) and its skills extracted; the offer is pasted or imported from a URL (SSRF-protected). If the daily quota is reached the API answers <strong>429</strong>; otherwise it creates an <code>AnalysisJob</code> and answers <strong>202</strong> immediately. The analysis then runs in the background (offer analysis, skill score, semantic score, 55 % / 45 % weighting adjusted to the level, recommendations) <strong>in parallel</strong> with the interface polling the job (250 ms growing to 1.5 s), before redirecting to the results.</p>
+<p><img alt="Activity — AI job search" src="../conception/images/activite-recherche-offres.png" /></p>
+<p>The API rejects a CV without usable text (<strong>400</strong>), reuses already-extracted skills, asks the AI for a search plan (French and English titles, keywords, seniority), then queries the <strong>5 sources in parallel</strong> (1-hour cache, 8 s maximum per source, a failing source is skipped; <strong>502</strong> if all fail). Offers are deduplicated, filtered by location / remote, pre-ranked locally and ranked by the AI; the top 20 are kept and the search is saved.</p>
+<p><img alt="Activity — registration, login and JWT session" src="../conception/images/activite-authentification.png" /></p>
+<p>Registration checks that sign-ups are open (<strong>403</strong> otherwise) and validates the form (unique e-mail, matching and strong passwords; PBKDF2 hashing). Login issues an access token (60 min) and a refresh token (7 days). When an API call returns <strong>401</strong>, the interface requests a new token and replays the request, or clears the session and redirects to the login page if the refresh token is invalid.</p>
+<hr />
+<h2>4. Prompts used to build the application</h2>
+<p>ResumeMatch AI was built with the <strong>Cursor AI agent</strong>. Two kinds of prompts are documented here: the instructions given to the agent during development, and the prompts the application itself sends to the LLM. The full French version, with every prompt text, is in <code>docs/conception/PROMPTS.md</code>.</p>
+<h3>4.1 Project timeline</h3>
+<table>
+<thead>
+<tr>
+<th>Date</th>
+<th>Commit</th>
+<th>Author</th>
+<th>Step</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>05/10/2026</td>
+<td><code>47f5c5f</code></td>
+<td>azouzi marwen</td>
+<td>Repository initialised</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>58adf16</code></td>
+<td>Cursor Agent</td>
+<td>Full MVP: Django API + React interface</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>34bf48f</code></td>
+<td>Cursor Agent</td>
+<td>History search filter fix</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>1ad595b</code></td>
+<td>Cursor Agent</td>
+<td>Scoring unit tests (synonyms, overlap)</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>fbc695e</code>, <code>d6d6a07</code></td>
+<td>Cursor Agent</td>
+<td>Forest / teal colour palette and favicon</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>c10ac4a</code></td>
+<td>Cursor Agent</td>
+<td><code>start-local.sh</code> one-command launcher</td>
+</tr>
+<tr>
+<td>05/10/2026</td>
+<td><code>13a2769</code></td>
+<td>Mahdibouazizi + Cursor</td>
+<td>AI job search, admin console, demo data, career toolkit, async analyses, FR / EN</td>
+</tr>
+<tr>
+<td>11/10/2026</td>
+<td><code>4c99d1f</code></td>
+<td>brouri12 + Cursor</td>
+<td>Interface responsiveness optimisation</td>
+</tr>
+<tr>
+<td>11/10/2026</td>
+<td>—</td>
+<td>Cursor Agent</td>
+<td>5 module branches, test campaign, this report, UML design</td>
+</tr>
+</tbody>
+</table>
+<h3>4.2 Creation phase — 5 October 2026 (reconstructed prompts)</h3>
+<blockquote>
+<p>The conversations of this phase were held with a Cursor agent on another account (commits signed <em>Cursor Agent</em>, co-author <code>marwenazouzi44</code>), so their original text is <strong>not available locally</strong>. The prompts below are <strong>reconstructed</strong> from the exact content of each commit; they describe faithfully what was requested and delivered, but are not word-for-word.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Commit</th>
+<th>Reconstructed prompt (summary)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>C1</td>
+<td><code>58adf16</code></td>
+<td>Build the full-stack « ResumeMatch AI » app (Django 5 + DRF + JWT, React + Vite + Tailwind): JWT accounts with level, PDF CV upload and text extraction, LLM skill extraction, job-offer analysis, hybrid 0–100 score (55 % skills / 45 % semantic, adjusted by level), recommendations, cover letters in 3 tones with export, history; provider-agnostic AI with an offline mock when no API key is set</td>
+</tr>
+<tr>
+<td>C2</td>
+<td><code>34bf48f</code></td>
+<td>Fix the history page search filter</td>
+</tr>
+<tr>
+<td>C3</td>
+<td><code>1ad595b</code></td>
+<td>Add unit tests for scoring: skill synonyms and overlap score</td>
+</tr>
+<tr>
+<td>C4</td>
+<td><code>fbc695e</code>, <code>d6d6a07</code></td>
+<td>Replace the cream / terracotta palette with forest / teal tones and align the favicon</td>
+</tr>
+<tr>
+<td>C5</td>
+<td><code>c10ac4a</code></td>
+<td>Add <code>start-local.sh</code>: venv, migrations, Django on :8765 and Vite on :43124 in one command</td>
+</tr>
+<tr>
+<td>C6</td>
+<td><code>13a2769</code></td>
+<td>Add AI job search over real job feeds, live offers on the landing page, admin console, <code>seed_demo</code>, interview prep, CV rewrite, ATS check, learning plan, .docx report, async analyses, URL import, multi-offer comparison, Kanban board, score timeline, FR / EN interface, LLM cache, throttling and quotas</td>
+</tr>
+</tbody>
+</table>
+<h3>4.3 Evolution and quality phase — 11 October 2026 (original prompts)</h3>
+<p>Exact prompts typed in Cursor, in order (automatic environment notifications excluded):</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Original prompt (verbatim)</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P1</td>
+<td><code>https://github.com/brouri12/resumematch-ai pull the project and run it in ide cursor</code></td>
+<td>Project cloned and running locally</td>
+</tr>
+<tr>
+<td>P2</td>
+<td><code>i want you to split this progect to 5  modules and the you push each module in that repo git in braches that has the name of each module ok</code></td>
+<td>Branches <code>auth</code>, <code>cv-management</code>, <code>analysis</code>, <code>job-search</code>, <code>admin-panel</code></td>
+</tr>
+<tr>
+<td>P3</td>
+<td><code>now i want you to solve the prolems in the app because it take alot of time to respense for any action</code></td>
+<td>Slowness traced to page animations (API was fast); navigation ≈ 0.35 s instead of over 1 s — commit <code>4c99d1f</code></td>
+</tr>
+<tr>
+<td>P4</td>
+<td><code>YES</code></td>
+<td>Fix pushed to <code>main</code> and the 5 module branches</td>
+</tr>
+<tr>
+<td>P5</td>
+<td><code>I WANT YOU TO use 5 tools of test to test the full app and the collect the resultes and make a comparation table and dont forget to take screenshots to add it tho the technical raport that you gonna make it ok</code></td>
+<td>Test campaign and this report (sections 5 to 13)</td>
+</tr>
+<tr>
+<td>P6</td>
+<td><code>AJOUTER LES PROMPT utilisuer durant touts la creation de app et creerer les diagramme de classe et usecase et activiter</code></td>
+<td>Sections 3 and 4 of this report, <code>docs/conception/</code></td>
+</tr>
+<tr>
+<td>P7</td>
+<td><code>ajouter le travail demander au rapport technique</code></td>
+<td>Design and prompts integrated into this report</td>
+</tr>
+</tbody>
+</table>
+<h3>4.4 Prompts embedded in the application</h3>
+<p>The application sends its own prompts to the LLM (<code>backend/services/ai_service.py</code>). Each prompt demands an answer <strong>« UNIQUEMENT en JSON strict »</strong>, includes the expected JSON schema (generated from a Pydantic model), and is validated with up to <strong>3 attempts</strong> before falling back to the mock engine. Three reusable fragments personalise them:</p>
+<table>
+<thead>
+<tr>
+<th>Fragment</th>
+<th>Values</th>
+<th>Example of injected text</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Level</td>
+<td><code>etudiant</code>, <code>junior</code>, <code>confirme</code></td>
+<td>« Le candidat est JUNIOR. Mets en avant les réalisations concrètes, outils maîtrisés et le travail en équipe. »</td>
+</tr>
+<tr>
+<td>Tone</td>
+<td><code>formal</code>, <code>dynamic</code>, <code>concise</code></td>
+<td>« Ton concis, direct, sans fioritures (max 250 mots). »</td>
+</tr>
+<tr>
+<td>Language</td>
+<td><code>fr</code>, <code>en</code></td>
+<td>« Write all textual content in English. »</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Feature</th>
+<th>Prompt instruction (beginning)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>extract_cv_skills</code></td>
+<td>CV parsing</td>
+<td>« Extrais du CV les informations suivantes en JSON strict. »</td>
+</tr>
+<tr>
+<td><code>analyze_job_offer</code></td>
+<td>Offer analysis</td>
+<td>« Analyse cette offre d'emploi et extrais les compétences et infos en JSON strict. »</td>
+</tr>
+<tr>
+<td><code>evaluate_semantic_fit</code></td>
+<td>Semantic score</td>
+<td>« Évalue la compatibilité sémantique entre le CV et l'offre (0-100). »</td>
+</tr>
+<tr>
+<td><code>generate_recommendations</code></td>
+<td>Recommendations</td>
+<td>« Propose des recommandations d'amélioration du CV pour cette offre. »</td>
+</tr>
+<tr>
+<td><code>generate_cover_letter</code></td>
+<td>Cover letter</td>
+<td>« Rédige une lettre de motivation personnalisée. »</td>
+</tr>
+<tr>
+<td><code>generate_interview_prep</code></td>
+<td>Interview prep</td>
+<td>« Prépare le candidat à l'entretien pour cette offre. Génère 8 à 10 questions probables… »</td>
+</tr>
+<tr>
+<td><code>rewrite_cv</code></td>
+<td>CV rewrite</td>
+<td>« Sélectionne 4 à 8 phrases/puces du CV qui gagneraient à être réécrites… sans inventer de faits »</td>
+</tr>
+<tr>
+<td><code>generate_learning_plan</code></td>
+<td>Learning plan</td>
+<td>« Construis un plan d'apprentissage pour combler ces compétences manquantes… URLs réelles uniquement »</td>
+</tr>
+<tr>
+<td><code>plan_job_search</code></td>
+<td>Job search plan</td>
+<td>« Tu prépares une recherche d'offres d'emploi pour ce candidat. Déduis du CV : target_titles… »</td>
+</tr>
+<tr>
+<td><code>rank_job_matches</code></td>
+<td>Offer ranking</td>
+<td>« Évalue l'adéquation entre le CV et CHAQUE offre… Sois exigeant : une offre hors métier du candidat doit être sous 30. »</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prompt-engineering practices applied:</strong> structured output with schema + Pydantic validation; tolerant JSON extraction and retries; anti-hallucination constraints (« texte EXACT du CV », « sans inventer de faits », « URLs réelles uniquement »); cost control through text truncation (4 000–12 000 characters), the <code>LLMCacheEntry</code> cache, quotas and throttling.</p>
+<hr />
+<h2>5. Test strategy</h2>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Question answered</th>
+<th>Tool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit + integration (backend)</td>
+<td>Do models, services, API endpoints and permissions behave correctly? How much code is exercised?</td>
+<td><strong>Django test runner + Coverage.py</strong></td>
+</tr>
+<tr>
+<td>Unit (frontend)</td>
+<td>Is the client-side business logic (scoring display, i18n, helpers) correct?</td>
+<td><strong>Vitest</strong> (+ V8 coverage)</td>
+</tr>
+<tr>
+<td>End-to-end (system)</td>
+<td>Can a real user complete every journey in a real browser?</td>
+<td><strong>Playwright</strong></td>
+</tr>
+<tr>
+<td>Performance / load</td>
+<td>How does the API behave with many simultaneous users?</td>
+<td><strong>Locust</strong></td>
+</tr>
+<tr>
+<td>Quality audit</td>
+<td>Is the UI fast to load, accessible, secure and SEO-friendly?</td>
+<td><strong>Lighthouse</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>6. Tool 1 — Django test runner + Coverage.py (backend)</h2>
+<p><strong>Purpose:</strong> unit and integration tests of the REST API, business services and permissions, measured with statement coverage.</p>
+<p><strong>Command</strong></p>
+<pre><code class="language-powershell">cd backend
+python -m coverage run --source=accounts,cvs,analyses,adminpanel,services `
+  --omit=&quot;*/migrations/*,*/tests*.py&quot; manage.py test -v 2
+python -m coverage report --sort=cover
+python -m coverage html -d ../docs/test-report/coverage-backend-html
+</code></pre>
+<p><strong>Results</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tests run</td>
+<td>52</td>
+</tr>
+<tr>
+<td>Passed / failed / errors</td>
+<td><strong>52 / 0 / 0</strong></td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>12.9 s</td>
+</tr>
+<tr>
+<td>Statement coverage</td>
+<td><strong>83 %</strong> (1 800 / 2 169)</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Least-covered modules</th>
+<th>Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cvs/views.py</code></td>
+<td>45 %</td>
+</tr>
+<tr>
+<td><code>services/pdf_service.py</code></td>
+<td>53 %</td>
+</tr>
+<tr>
+<td><code>cvs/serializers.py</code></td>
+<td>59 %</td>
+</tr>
+<tr>
+<td><code>accounts/serializers.py</code></td>
+<td>63 %</td>
+</tr>
+<tr>
+<td><code>analyses/views.py</code></td>
+<td>65 %</td>
+</tr>
+</tbody>
+</table>
+<p>Best-covered: <code>scoring.py</code> 95 %, <code>ats_service.py</code> 95 %, <code>analyses/models.py</code> 94 %, <code>adminpanel/views.py</code> 90 %, all serializers of <code>analyses</code> and <code>adminpanel</code> 100 %.</p>
+<p>Covered behaviours include: JWT registration/login, admin-only endpoints (<code>non_staff_is_forbidden</code>), daily analysis quota, async analysis jobs, DOCX report export, LLM JSON-retry fallback, ATS layout detection, SSRF protection on URL import (<code>private_addresses_are_rejected</code>), job-feed caching and failure isolation.</p>
+<blockquote>
+<p>The red lines in the console capture are <strong>expected log messages</strong> produced by tests that deliberately simulate failures (an unreachable job source, an invalid LLM response); the tests themselves pass.</p>
+</blockquote>
+<p><img alt="Django test run" src="screenshots/tool1-django-tests.png" /></p>
+<p><img alt="Coverage.py console report" src="screenshots/tool1-coverage-console.png" /></p>
+<p><img alt="Coverage.py HTML report" src="screenshots/tool1-coverage-html.png" /></p>
+<hr />
+<h2>7. Tool 2 — Vitest (frontend unit tests)</h2>
+<p><strong>Purpose:</strong> fast unit tests of the React application's pure logic (helpers, translations), with V8 coverage.</p>
+<p><strong>Command</strong></p>
+<pre><code class="language-powershell">cd frontend
+npm run test:coverage
+</code></pre>
+<p><strong>Results</strong></p>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Test files / tests</td>
+<td>2 / 19</td>
+</tr>
+<tr>
+<td>Passed / failed</td>
+<td><strong>19 / 0</strong></td>
+</tr>
+<tr>
+<td>Duration</td>
+<td>0.65 s</td>
+</tr>
+<tr>
+<td>Coverage of <code>src/lib</code> (business logic)</td>
+<td><strong>90 %</strong> statements · 84.6 % branches · 90 % functions</td>
+</tr>
+<tr>
+<td>Coverage of whole <code>src</code> (incl. pages/components)</td>
+<td><strong>4.4 %</strong> statements</td>
+</tr>
+</tbody>
+</table>
+<p>Tested: score buckets, job-offer text builder, Kanban grouping by status, SVG score-chart geometry and trend, job ranking, URL validation, translation lookup/fallback/interpolation, and <strong>parity of keys and placeholders between French and English</strong>.</p>
+<p><strong>Finding:</strong> React pages, components and contexts have <strong>no unit tests</strong> (0 %). They are exercised only by the Playwright end-to-end suite (Tool 3).</p>
+<p><img alt="Vitest console output" src="screenshots/tool2-vitest-console.png" /></p>
+<p><img alt="Vitest coverage report" src="screenshots/tool2-vitest-coverage-html.png" /></p>
+<hr />
+<h2>8. Tool 3 — Playwright (end-to-end browser tests)</h2>
+<p><strong>Purpose:</strong> drive a real Chromium browser through complete user journeys against the running frontend + backend, and capture screenshots.</p>
+<p><strong>Files:</strong> <code>frontend/playwright.config.js</code>, <code>frontend/e2e/app.spec.js</code></p>
+<p><strong>Command</strong></p>
+<pre><code class="language-powershell">cd frontend
+npm run test:e2e
+</code></pre>
+<p><strong>Results — 15 / 15 passed in 75 s (Chromium 1280×800, locale fr-FR)</strong></p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Scenario</th>
+<th>Result</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>E2E-01</td>
+<td>Landing page renders hero and call-to-action</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-02</td>
+<td>Protected route redirects anonymous users to login</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-03</td>
+<td>Login with a wrong password shows an error</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-04</td>
+<td>Registration creates an account and opens the dashboard</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-05</td>
+<td>Dashboard shows statistics and score timeline</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-06</td>
+<td>Upload a PDF CV in the analysis wizard</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-07</td>
+<td>Full CV / job-offer analysis (4-step wizard → results)</td>
+<td>✅ Pass — analysis completed in <strong>148 ms</strong></td>
+</tr>
+<tr>
+<td>E2E-08</td>
+<td>History lists previous analyses</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-09</td>
+<td>Application board shows status columns</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-10</td>
+<td>Compare page and job-search page load</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-11</td>
+<td>Profile page shows the user's information</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-12</td>
+<td>Non-admin users cannot open the admin console</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-13</td>
+<td>Language switch translates the interface (FR → EN)</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-14</td>
+<td>Admin console shows the platform overview</td>
+<td>✅ Pass</td>
+</tr>
+<tr>
+<td>E2E-15</td>
+<td>Mobile layout (390×844 viewport)</td>
+<td>✅ Pass</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="Playwright console" src="screenshots/tool3-playwright-console.png" /></p>
+<p><img alt="Playwright HTML report" src="screenshots/tool3-playwright-html.png" /></p>
+<h3>8.1 Screenshots captured during the end-to-end run</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><img alt="Landing" src="screenshots/e2e-01-landing.png" /> <strong>E2E-01</strong> Landing page</td>
+<td><img alt="Login redirect" src="screenshots/e2e-02-login-redirect.png" /> <strong>E2E-02</strong> Redirect to login</td>
+</tr>
+<tr>
+<td><img alt="Login error" src="screenshots/e2e-03-login-error.png" /> <strong>E2E-03</strong> Wrong password</td>
+<td><img alt="Register" src="screenshots/e2e-04a-register-form.png" /> <strong>E2E-04</strong> Registration form</td>
+</tr>
+<tr>
+<td><img alt="Dashboard" src="screenshots/e2e-05-dashboard.png" /> <strong>E2E-05</strong> Dashboard</td>
+<td><img alt="CV upload" src="screenshots/e2e-06-cv-upload.png" /> <strong>E2E-06</strong> CV upload</td>
+</tr>
+<tr>
+<td><img alt="Wizard offer" src="screenshots/e2e-07a-wizard-offer.png" /> <strong>E2E-07</strong> Wizard — job offer</td>
+<td><img alt="Wizard summary" src="screenshots/e2e-07b-wizard-summary.png" /> <strong>E2E-07</strong> Wizard — summary</td>
+</tr>
+<tr>
+<td><img alt="Results" src="screenshots/e2e-07c-results.png" /> <strong>E2E-07</strong> Analysis result (score 87/100)</td>
+<td><img alt="History" src="screenshots/e2e-08-history.png" /> <strong>E2E-08</strong> History</td>
+</tr>
+<tr>
+<td><img alt="Board" src="screenshots/e2e-09-board.png" /> <strong>E2E-09</strong> Application board</td>
+<td><img alt="Compare" src="screenshots/e2e-10a-compare.png" /> <strong>E2E-10</strong> Compare offers</td>
+</tr>
+<tr>
+<td><img alt="Job search" src="screenshots/e2e-10b-job-search.png" /> <strong>E2E-10</strong> AI job search</td>
+<td><img alt="Profile" src="screenshots/e2e-11-profile.png" /> <strong>E2E-11</strong> Profile</td>
+</tr>
+<tr>
+<td><img alt="English UI" src="screenshots/e2e-13-english.png" /> <strong>E2E-13</strong> English interface</td>
+<td><img alt="Admin" src="screenshots/e2e-14-admin.png" /> <strong>E2E-14</strong> Admin console</td>
+</tr>
+<tr>
+<td><img alt="Mobile" src="screenshots/e2e-15-mobile-dashboard.png" /> <strong>E2E-15</strong> Mobile dashboard</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Observation (UX):</strong> on E2E-03 the error message is displayed in the brand teal colour. Since the palette change, the <code>coral</code> colour token used by <code>Alert type="error"</code> is teal, so errors are not visually distinguishable from informational messages.</p>
+<hr />
+<h2>9. Tool 4 — Locust (load and stress testing)</h2>
+<p><strong>Purpose:</strong> simulate many concurrent candidates using the REST API and measure throughput, latency percentiles and error rate.</p>
+<p><strong>File:</strong> <code>backend/loadtests/locustfile.py</code> — each virtual user logs in (JWT) and then randomly, with weights, opens the dashboard (5), lists analyses (4), opens an analysis (3), reads the profile (3), checks system status (2), lists job sources (2), <strong>runs a new analysis</strong> (1) and calls the health check (1), waiting 0.5–2 s between actions.</p>
+<p><strong>Commands</strong></p>
+<pre><code class="language-powershell">cd backend
+locust -f loadtests/locustfile.py --host http://127.0.0.1:8765 --headless -u 20  -r 5  -t 60s --html ../docs/test-report/locust-report.html
+locust -f loadtests/locustfile.py --host http://127.0.0.1:8765 --headless -u 100 -r 10 -t 60s --html ../docs/test-report/locust-stress-report.html
+</code></pre>
+<h3>9.1 Normal load — 20 concurrent users, 60 s</h3>
+<table>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Requests</th>
+<th>Failures</th>
+<th>Median (ms)</th>
+<th>Avg (ms)</th>
+<th>p95 (ms)</th>
+<th>Max (ms)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET /api/dashboard/stats/</td>
+<td>238</td>
+<td>0</td>
+<td>10</td>
+<td>11.7</td>
+<td>20</td>
+<td>68</td>
+</tr>
+<tr>
+<td>GET /api/analyses/</td>
+<td>199</td>
+<td>0</td>
+<td>7</td>
+<td>8.2</td>
+<td>13</td>
+<td>23</td>
+</tr>
+<tr>
+<td>GET /api/analyses/:id/</td>
+<td>129</td>
+<td>0</td>
+<td>5</td>
+<td>6.1</td>
+<td>10</td>
+<td>32</td>
+</tr>
+<tr>
+<td>GET /api/auth/me</td>
+<td>130</td>
+<td>0</td>
+<td>4</td>
+<td>4.9</td>
+<td>9</td>
+<td>19</td>
+</tr>
+<tr>
+<td>GET /api/job-search/sources</td>
+<td>97</td>
+<td>0</td>
+<td>4</td>
+<td>4.1</td>
+<td>7</td>
+<td>9</td>
+</tr>
+<tr>
+<td>GET /api/system/status/</td>
+<td>71</td>
+<td>0</td>
+<td>6</td>
+<td>6.9</td>
+<td>12</td>
+<td>13</td>
+</tr>
+<tr>
+<td>GET /api/health/</td>
+<td>40</td>
+<td>0</td>
+<td>2</td>
+<td>2.5</td>
+<td>5</td>
+<td>17</td>
+</tr>
+<tr>
+<td>GET /api/cvs/</td>
+<td>20</td>
+<td>0</td>
+<td>7</td>
+<td>7.1</td>
+<td>14</td>
+<td>14</td>
+</tr>
+<tr>
+<td>POST /api/analyses/</td>
+<td>31</td>
+<td>0</td>
+<td>23</td>
+<td>23.4</td>
+<td>30</td>
+<td>31</td>
+</tr>
+<tr>
+<td>POST /api/auth/login</td>
+<td>20</td>
+<td>0</td>
+<td>770</td>
+<td>788</td>
+<td>950</td>
+<td>953</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>975</strong></td>
+<td><strong>0 (0 %)</strong></td>
+<td><strong>7</strong></td>
+<td><strong>24</strong></td>
+<td><strong>23</strong></td>
+<td><strong>953</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Throughput: <strong>16.7 requests/s</strong> (limited by the simulated think time, not by the server).</p>
+<h3>9.2 Stress — 100 concurrent users, 60 s</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Requests</td>
+<td>4 517</td>
+</tr>
+<tr>
+<td>Throughput</td>
+<td><strong>76.2 requests/s</strong></td>
+</tr>
+<tr>
+<td>Median / p95 / p99</td>
+<td>10 ms / 97 ms / 1 800 ms</td>
+</tr>
+<tr>
+<td>Login median under stress</td>
+<td>1 800 ms (max 2.6 s)</td>
+</tr>
+<tr>
+<td>Failures</td>
+<td>153 (3.4 %) — <strong>all <code>429 Too Many Requests</code> on <code>POST /api/analyses/</code></strong></td>
+</tr>
+<tr>
+<td>Server errors (5xx) / timeouts</td>
+<td><strong>0</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Interpretation of the 429 responses:</strong> the 100 virtual users share the 3 demo accounts, so each account quickly exceeded the business rule <em>"20 analyses per user per 24 h"</em> (<code>ANALYSIS_DAILY_QUOTA</code>) and the AI rate limit (30/hour). The API correctly refused the extra analyses with HTTP 429 and a clear message, which is the expected behaviour. Read-only endpoints served every request.</p>
+<p><strong>Finding:</strong> login is the slowest operation (≈0.8 s alone, 1.8 s under stress). This is caused by the deliberately expensive password hashing (PBKDF2) running on a single development server process; it is a security feature, but it limits how many logins per second one process can handle.</p>
+<p><img alt="Locust console summary" src="screenshots/tool4-locust-console.png" /></p>
+<p><img alt="Locust HTML report — statistics" src="screenshots/tool4-locust-html.png" /></p>
+<p><img alt="Locust HTML report — charts" src="screenshots/tool4-locust-charts.png" /></p>
+<p><img alt="Locust stress report" src="screenshots/tool4-locust-stress-html.png" /></p>
+<hr />
+<h2>10. Tool 5 — Lighthouse (performance, accessibility, best practices, SEO)</h2>
+<p><strong>Purpose:</strong> audit the production build (<code>vite build</code> + <code>vite preview</code>) of the public pages with Google Lighthouse 12.8.2 (headless Chromium).</p>
+<p><strong>Command (example)</strong></p>
+<pre><code class="language-powershell">npx lighthouse http://127.0.0.1:43131/ --preset=desktop --output=html --output=json `
+  --output-path=docs/test-report/lighthouse/landing-desktop `
+  --only-categories=performance,accessibility,best-practices,seo
+</code></pre>
+<p><strong>Results</strong></p>
+<table>
+<thead>
+<tr>
+<th>Page</th>
+<th>Device</th>
+<th>Performance</th>
+<th>Accessibility</th>
+<th>Best practices</th>
+<th>SEO</th>
+<th>FCP</th>
+<th>LCP</th>
+<th>TBT</th>
+<th>CLS</th>
+<th>Speed Index</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Landing <code>/</code></td>
+<td>Desktop</td>
+<td><strong>89</strong></td>
+<td><strong>100</strong></td>
+<td><strong>100</strong></td>
+<td>83</td>
+<td>0.6 s</td>
+<td>1.5 s</td>
+<td>0 ms</td>
+<td>0.039</td>
+<td>2.5 s</td>
+</tr>
+<tr>
+<td>Landing <code>/</code></td>
+<td>Mobile</td>
+<td><strong>65</strong></td>
+<td><strong>100</strong></td>
+<td><strong>100</strong></td>
+<td>83</td>
+<td>3.3 s</td>
+<td>7.1 s</td>
+<td>170 ms</td>
+<td>0.034</td>
+<td>5.0 s</td>
+</tr>
+<tr>
+<td>Login <code>/connexion</code></td>
+<td>Desktop</td>
+<td><strong>95</strong></td>
+<td><strong>100</strong></td>
+<td><strong>100</strong></td>
+<td>82</td>
+<td>0.9 s</td>
+<td>1.3 s</td>
+<td>0 ms</td>
+<td>0.023</td>
+<td>1.1 s</td>
+</tr>
+<tr>
+<td>Register <code>/inscription</code></td>
+<td>Desktop</td>
+<td><strong>98</strong></td>
+<td><strong>100</strong></td>
+<td><strong>100</strong></td>
+<td>82</td>
+<td>0.6 s</td>
+<td>1.1 s</td>
+<td>0 ms</td>
+<td>0.023</td>
+<td>0.9 s</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Findings</strong></p>
+<ul>
+<li><strong>Mobile LCP 7.1 s:</strong> the largest element is the full-screen hero background, a 1920 px image loaded from <code>images.unsplash.com</code> (external host, not optimised for mobile).</li>
+<li><strong>Main-thread work 2.2 s</strong> and <strong>62 KiB of unused JavaScript</strong> on mobile (animation library + shared bundle).</li>
+<li><strong>SEO:</strong> the page has no <code>&lt;meta name="description"&gt;</code>, and <code>/robots.txt</code> is missing (the SPA returns <code>index.html</code> instead).</li>
+<li><strong>Accessibility 100 / Best practices 100</strong> on every page: correct contrast, labels, roles, HTTPS-ready headers, no console errors.</li>
+</ul>
+<p><img alt="Lighthouse — landing desktop" src="screenshots/tool5-lighthouse-landing-desktop.png" /></p>
+<p><img alt="Lighthouse — landing mobile" src="screenshots/tool5-lighthouse-landing-mobile.png" /></p>
+<p><img alt="Lighthouse — login desktop" src="screenshots/tool5-lighthouse-login-desktop.png" /></p>
+<hr />
+<h2>11. Comparison of the five tools</h2>
+<h3>11.1 Tool characteristics</h3>
+<table>
+<thead>
+<tr>
+<th>Criterion</th>
+<th>Django test + Coverage.py</th>
+<th>Vitest</th>
+<th>Playwright</th>
+<th>Locust</th>
+<th>Lighthouse</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Test type</strong></td>
+<td>Unit + integration</td>
+<td>Unit</td>
+<td>End-to-end (system)</td>
+<td>Load / stress</td>
+<td>Quality audit</td>
+</tr>
+<tr>
+<td><strong>Layer tested</strong></td>
+<td>Backend (API, models, services)</td>
+<td>Frontend logic</td>
+<td>Whole stack via the browser</td>
+<td>Backend API</td>
+<td>Frontend (rendered pages)</td>
+</tr>
+<tr>
+<td><strong>Language</strong></td>
+<td>Python</td>
+<td>JavaScript</td>
+<td>JavaScript</td>
+<td>Python</td>
+<td>CLI (no code)</td>
+</tr>
+<tr>
+<td><strong>Main metric</strong></td>
+<td>Pass/fail + % statements covered</td>
+<td>Pass/fail + % coverage</td>
+<td>Pass/fail + screenshots</td>
+<td>Latency percentiles, RPS, error rate</td>
+<td>0–100 scores + Web Vitals</td>
+</tr>
+<tr>
+<td><strong>Speed</strong></td>
+<td>12.9 s</td>
+<td>0.65 s</td>
+<td>75 s</td>
+<td>60 s per scenario</td>
+<td>≈20 s per page</td>
+</tr>
+<tr>
+<td><strong>Needs running servers</strong></td>
+<td>No (test DB)</td>
+<td>No</td>
+<td>Yes (frontend + backend)</td>
+<td>Yes (backend)</td>
+<td>Yes (built frontend)</td>
+</tr>
+<tr>
+<td><strong>Detects</strong></td>
+<td>Logic bugs, permission and validation errors, regressions</td>
+<td>Logic bugs in helpers / i18n</td>
+<td>Broken journeys, routing, UI integration, visual issues</td>
+<td>Bottlenecks, slow endpoints, errors under load</td>
+<td>Slow loading, a11y, SEO, bad practices</td>
+</tr>
+<tr>
+<td><strong>Does not detect</strong></td>
+<td>UI problems, performance</td>
+<td>UI rendering, API issues</td>
+<td>Performance limits, untested branches</td>
+<td>Functional correctness of UI</td>
+<td>Functional bugs</td>
+</tr>
+<tr>
+<td><strong>Effort to write tests</strong></td>
+<td>Medium</td>
+<td>Low</td>
+<td>Medium–high</td>
+<td>Low–medium</td>
+<td>None</td>
+</tr>
+<tr>
+<td><strong>Report produced</strong></td>
+<td>Console + HTML coverage</td>
+<td>Console + HTML coverage</td>
+<td>HTML report + JSON + screenshots</td>
+<td>HTML report + CSV</td>
+<td>HTML + JSON</td>
+</tr>
+<tr>
+<td><strong>Best use in CI</strong></td>
+<td>Every commit</td>
+<td>Every commit</td>
+<td>Before merge / release</td>
+<td>Before release</td>
+<td>Before release</td>
+</tr>
+</tbody>
+</table>
+<h3>11.2 Results obtained</h3>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Tests / scenarios</th>
+<th>Passed</th>
+<th>Key result</th>
+<th>Rating</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Django test + Coverage.py</td>
+<td>52 tests</td>
+<td>52 (100 %)</td>
+<td>83 % backend coverage</td>
+<td>✅ Very good</td>
+</tr>
+<tr>
+<td>Vitest</td>
+<td>19 tests</td>
+<td>19 (100 %)</td>
+<td>90 % of <code>src/lib</code>, 4.4 % of all frontend code</td>
+<td>⚠️ Good logic coverage, no component tests</td>
+</tr>
+<tr>
+<td>Playwright</td>
+<td>15 journeys</td>
+<td>15 (100 %)</td>
+<td>All user journeys work; analysis in 148 ms</td>
+<td>✅ Very good</td>
+</tr>
+<tr>
+<td>Locust</td>
+<td>2 scenarios (20 and 100 users)</td>
+<td>0 server errors</td>
+<td>Median 7–10 ms, 76 RPS at 100 users; login 0.8–1.8 s</td>
+<td>✅ Good (login is the bottleneck)</td>
+</tr>
+<tr>
+<td>Lighthouse</td>
+<td>4 audits</td>
+<td>—</td>
+<td>A11y 100, BP 100, Desktop perf 89–98, Mobile perf 65, SEO 82–83</td>
+<td>⚠️ Good on desktop, mobile to improve</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>12. Defects and recommendations</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Severity</th>
+<th>Finding</th>
+<th>Source tool</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Medium</td>
+<td>Mobile landing page LCP 7.1 s (performance 65)</td>
+<td>Lighthouse</td>
+<td>Self-host the hero image in WebP/AVIF with responsive <code>srcset</code> (≈800 px for mobile) and <code>fetchpriority="high"</code>; preload it</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Medium</td>
+<td>React pages/components have 0 % unit coverage</td>
+<td>Vitest</td>
+<td>Add component tests with <code>@testing-library/react</code> (login form, wizard steps, results page)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Medium</td>
+<td>Login takes 0.8 s alone and 1.8 s under 100 users</td>
+<td>Locust</td>
+<td>Run Django with several workers in production (gunicorn/uvicorn); keep refresh tokens so users rarely log in again</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Low</td>
+<td>No meta description, missing <code>robots.txt</code> (SEO 82–83)</td>
+<td>Lighthouse</td>
+<td>Add <code>&lt;meta name="description"&gt;</code> in <code>index.html</code> and <code>public/robots.txt</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Low</td>
+<td>62 KiB unused JS, 2.2 s main-thread work on mobile</td>
+<td>Lighthouse</td>
+<td>Keep route-level code splitting; lazy-load the landing-page animations</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Low</td>
+<td>Error alerts use the brand teal colour</td>
+<td>Playwright (screenshot E2E-03)</td>
+<td>Give <code>Alert type="error"</code> a dedicated red/orange token</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Low</td>
+<td><code>cvs/views.py</code> (45 %) and <code>pdf_service.py</code> (53 %) weakly covered</td>
+<td>Coverage.py</td>
+<td>Add tests for CV upload errors (non-PDF, oversize, empty text) and PDF extraction fallbacks</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Info</td>
+<td>Daily quota correctly returned HTTP 429 under stress</td>
+<td>Locust</td>
+<td>No action — expected behaviour; document it for load tests</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>13. Conclusion</h2>
+<p>Across <strong>86 automated functional tests</strong> and <strong>4 517 load-test requests</strong>, ResumeMatch AI showed <strong>no functional failure and no server error</strong>. The backend is well covered (83 %) and very fast (median 7–10 ms per API call), every user journey works in a real browser on desktop and mobile, and the UI scores 100 in accessibility and best practices.</p>
+<p>The five tools turned out to be complementary: <strong>Coverage.py and Vitest</strong> guarantee correctness of the code, <strong>Playwright</strong> proves that the integrated product works for a user, <strong>Locust</strong> shows how it behaves at scale, and <strong>Lighthouse</strong> evaluates the experience perceived in the browser. No single tool would have found all eight findings in section 12.</p>
+<p>Priority next steps: optimise the mobile hero image, add React component tests, and deploy the API with multiple worker processes.</p>
+<hr />
+<h2>Appendix A — How to reproduce</h2>
+<pre><code class="language-powershell"># Backend tools
+cd backend
+pip install -r requirements-dev.txt
+python -m coverage run --source=accounts,cvs,analyses,adminpanel,services --omit=&quot;*/migrations/*,*/tests*.py&quot; manage.py test
+python -m coverage report
+
+# Frontend unit tests
+cd ../frontend
+npm install
+npm run test:coverage
+
+# Start the application with demo data (two terminals)
+cd ../backend; python manage.py seed_demo --reset; python manage.py runserver 127.0.0.1:8765
+cd ../frontend; npx vite --port 43130 --strictPort
+
+# End-to-end
+npx playwright install chromium
+npm run test:e2e
+
+# Load test
+cd ../backend
+locust -f loadtests/locustfile.py --host http://127.0.0.1:8765 --headless -u 20 -r 5 -t 60s
+
+# Lighthouse (on the production build)
+cd ../frontend; npm run build; npx vite preview --port 43131
+npx lighthouse http://127.0.0.1:43131/ --preset=desktop --view
+</code></pre>
+<h2>Appendix B — Deliverables in <code>docs/test-report/</code></h2>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TECHNICAL_REPORT.md</code> / <code>TECHNICAL_REPORT.docx</code></td>
+<td>This report</td>
+</tr>
+<tr>
+<td><code>screenshots/</code></td>
+<td>32 screenshots (18 from the end-to-end run, 14 of tool reports)</td>
+</tr>
+<tr>
+<td><code>coverage-backend-html/</code></td>
+<td>Coverage.py HTML report</td>
+</tr>
+<tr>
+<td><code>coverage-frontend-html/</code></td>
+<td>Vitest V8 coverage HTML report</td>
+</tr>
+<tr>
+<td><code>playwright-html/</code></td>
+<td>Playwright HTML report</td>
+</tr>
+<tr>
+<td><code>locust-report.html</code>, <code>locust-stress-report.html</code></td>
+<td>Locust reports</td>
+</tr>
+<tr>
+<td><code>lighthouse/</code></td>
+<td>Lighthouse HTML + JSON reports (4 audits)</td>
+</tr>
+<tr>
+<td><code>raw/</code></td>
+<td>Raw console logs, Locust CSV, Playwright JSON</td>
+</tr>
+<tr>
+<td><code>console/</code>, <code>tools/</code></td>
+<td>Console captures and the scripts that render them and build the .docx / .html / .pdf reports</td>
+</tr>
+<tr>
+<td><code>../conception/diagrammes/</code>, <code>../conception/images/</code></td>
+<td>PlantUML sources and PNG / SVG renderings of the 6 UML diagrams (section 3)</td>
+</tr>
+<tr>
+<td><code>../conception/PROMPTS.md</code>, <code>../conception/CONCEPTION.md</code></td>
+<td>Full French versions of the prompts and design documents (also as .docx / .pdf)</td>
+</tr>
+</tbody>
+</table></body></html>

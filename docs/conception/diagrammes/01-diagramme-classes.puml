@@ -1,0 +1,200 @@
+@startuml diagramme-classes
+!pragma layout smetana
+title ResumeMatch AI — Diagramme de classes (modèle de domaine)
+skinparam backgroundColor #FFFFFF
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam class {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  ArrowColor #1F4D3E
+  HeaderBackgroundColor #DCEFE6
+}
+skinparam package {
+  BorderColor #2F8F73
+  BackgroundColor #FFFFFF
+}
+hide empty members
+
+package "django.contrib.auth" {
+  class AbstractUser <<Django>> {
+    + username : str
+    + email : str
+    + password : str
+    + first_name : str
+    + last_name : str
+    + is_staff : bool
+    + is_active : bool
+    + date_joined : datetime
+  }
+}
+
+package "accounts" {
+  enum Niveau <<TextChoices>> {
+    ETUDIANT
+    JUNIOR
+    CONFIRME
+  }
+  class User {
+    + level : Niveau
+    + target_job_title : str
+  }
+}
+
+package "cvs" {
+  class CV {
+    + file : FileField
+    + original_filename : str
+    + extracted_text : text
+    + parsed_data : JSON
+    + uploaded_at : datetime
+  }
+}
+
+package "analyses" {
+  class JobOffer {
+    + title : str
+    + company : str
+    + raw_text : text
+    + parsed_data : JSON
+    + created_at : datetime
+  }
+  enum StatutCandidature <<TextChoices>> {
+    TO_APPLY
+    APPLIED
+    INTERVIEW
+    REJECTED
+    OFFER
+  }
+  class Analysis {
+    + level : Niveau
+    + score : int [0..100]
+    + present_skills : JSON
+    + missing_skills : JSON
+    + recommendations : JSON
+    + score_breakdown : JSON
+    + status : StatutCandidature
+    + language : str
+    + ai_mode : str
+    + extras : JSON
+    + created_at : datetime
+  }
+  enum Ton <<TextChoices>> {
+    FORMAL
+    DYNAMIC
+    CONCISE
+  }
+  class CoverLetter {
+    + tone : Ton
+    + content : text
+    + created_at : datetime
+    + updated_at : datetime
+  }
+  enum EtatTache <<TextChoices>> {
+    PENDING
+    RUNNING
+    DONE
+    FAILED
+  }
+  class AnalysisJob {
+    + state : EtatTache
+    + progress : int [0..100]
+    + step : str
+    + error : text
+    + created_at : datetime
+    + updated_at : datetime
+  }
+  class JobSearch {
+    + params : JSON
+    + plan : JSON
+    + results : JSON
+    + stats : JSON
+    + ai_mode : str
+    + created_at : datetime
+  }
+  class LLMCacheEntry {
+    + key : str {unique}
+    + kind : str
+    + data : JSON
+    + created_at : datetime
+  }
+}
+
+package "adminpanel" {
+  class SiteSettings <<singleton>> {
+    + analysis_daily_quota : int [0..1]
+    + force_mock_ai : bool
+    + allow_registration : bool
+    + announcement : str
+    + updated_at : datetime
+    --
+    + {static} load() : SiteSettings
+    + effective_daily_quota() : int
+  }
+}
+
+package "services" {
+  class AIService {
+    + provider : str
+    + model : str
+    + use_mock : bool
+    --
+    + extract_cv_skills(cv_text)
+    + analyze_job_offer(job_text)
+    + evaluate_semantic_fit(...)
+    + generate_recommendations(...)
+    + generate_cover_letter(...)
+    + generate_interview_prep(...)
+    + rewrite_cv(...)
+    + generate_learning_plan(...)
+    + plan_job_search(...)
+    + rank_job_matches(...)
+  }
+  class ScoringService <<module>> {
+    + canonicalize_skills(skills)
+    + skill_overlap_score(cv, required)
+  }
+  class PdfService <<module>> {
+    + extract_text_from_pdf(path)
+  }
+  class AtsService <<module>> {
+    + evaluate_ats(cv)
+  }
+  class JobSearchService <<module>> {
+    + collect_listings(queries, location)
+    + find_matching_jobs(cv, level, ...)
+    + featured_jobs()
+  }
+  class JobImportService <<module>> {
+    + import_job_offer(url)
+  }
+}
+
+AbstractUser <|-- User
+User ..> Niveau
+
+User "1" *-- "0..*" CV : possède >
+User "1" *-- "0..*" JobOffer : saisit >
+User "1" *-- "0..*" Analysis : réalise >
+User "1" *-- "0..*" AnalysisJob : lance >
+User "1" *-- "0..*" JobSearch : enregistre >
+
+CV "1" -- "0..*" Analysis : analysé dans >
+JobOffer "1" -- "0..*" Analysis : comparée dans >
+Analysis "1" *-- "0..*" CoverLetter : génère >
+AnalysisJob "0..*" --> "0..1" Analysis : produit >
+JobSearch "0..*" --> "0..1" CV : basée sur >
+
+Analysis ..> StatutCandidature
+CoverLetter ..> Ton
+AnalysisJob ..> EtatTache
+
+AIService ..> LLMCacheEntry : met en cache
+AIService ..> SiteSettings : lit force_mock_ai
+JobSearchService ..> AIService : plan + classement
+JobSearchService ..> JobImportService
+Analysis ..> ScoringService : score compétences
+CV ..> PdfService : extraction texte
+Analysis ..> AtsService : vérification ATS
+@enduml

@@ -1,0 +1,83 @@
+@startuml cas-utilisation-candidat
+!pragma layout smetana
+title ResumeMatch AI — Diagramme de cas d'utilisation (Visiteur et Candidat)
+left to right direction
+skinparam shadowing false
+skinparam defaultFontName Segoe UI
+skinparam actorStyle awesome
+skinparam usecase {
+  BackgroundColor #F3FAF6
+  BorderColor #1F4D3E
+  ArrowColor #1F4D3E
+}
+skinparam rectangle {
+  BorderColor #2F8F73
+}
+
+actor "Visiteur" as V
+actor "Candidat" as C
+actor "Fournisseur IA\n(Claude / OpenAI / Gemini\nou moteur démo)" as IA <<système>>
+actor "Sites d'offres\n(Remotive, Arbeitnow, Jobicy,\nAdzuna, France Travail)" as JOBS <<système>>
+
+V <|-- C
+
+rectangle "ResumeMatch AI" {
+  usecase "Consulter la page d'accueil\net les offres vedettes" as UC01
+  usecase "S'inscrire" as UC02
+  usecase "Se connecter (JWT)" as UC03
+  usecase "Changer la langue (FR / EN)" as UC04
+
+  usecase "Gérer son profil\n(niveau, poste cible)" as UC05
+  usecase "Importer un CV PDF" as UC06
+  usecase "Extraire les compétences du CV" as UC07
+  usecase "Lancer une analyse CV / offre" as UC08
+  usecase "Importer une offre par URL" as UC09
+  usecase "Calculer le score de compatibilité" as UC10
+  usecase "Comparer plusieurs offres" as UC11
+  usecase "Consulter le résultat\n(score, compétences, recommandations)" as UC12
+  usecase "Générer une lettre de motivation" as UC13
+  usecase "Exporter la lettre (.txt / .docx)" as UC14
+  usecase "Générer les outils carrière\n(entretien, réécriture CV,\nATS, plan d'apprentissage)" as UC15
+  usecase "Exporter le rapport d'analyse (.docx)" as UC16
+  usecase "Consulter l'historique" as UC17
+  usecase "Suivre ses candidatures\n(tableau Kanban, statut)" as UC18
+  usecase "Consulter le tableau de bord" as UC19
+  usecase "Rechercher des offres avec l'IA" as UC20
+  usecase "Se déconnecter" as UC21
+}
+
+V --> UC01
+V --> UC02
+V --> UC03
+V --> UC04
+
+C --> UC05
+C --> UC06
+C --> UC08
+C --> UC11
+C --> UC12
+C --> UC13
+C --> UC15
+C --> UC16
+C --> UC17
+C --> UC18
+C --> UC19
+C --> UC20
+C --> UC21
+
+UC06 ..> UC07 : <<include>>
+UC08 ..> UC07 : <<include>>
+UC08 ..> UC10 : <<include>>
+UC09 ..> UC08 : <<extend>>
+UC11 ..> UC08 : <<include>>
+UC14 ..> UC13 : <<extend>>
+UC20 ..> UC07 : <<include>>
+
+UC07 --> IA
+UC10 --> IA
+UC13 --> IA
+UC15 --> IA
+UC20 --> IA
+UC20 --> JOBS
+UC01 --> JOBS
+@enduml
