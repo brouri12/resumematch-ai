@@ -184,13 +184,15 @@ export function downloadReport(id, language = 'fr') {
   return downloadFile(`/api/analyses/${id}/report?language=${language}`, `rapport_analyse_${id}.docx`)
 }
 
-export async function pollJob(jobId, onUpdate, { interval = 1200, timeout = 300000 } = {}) {
+export async function pollJob(jobId, onUpdate, { interval = 250, maxInterval = 1500, timeout = 300000 } = {}) {
   const started = Date.now()
+  let wait = interval
   for (;;) {
     const job = await api.getAnalysisJob(jobId)
     onUpdate?.(job)
     if (job.state === 'done' || job.state === 'failed') return job
     if (Date.now() - started > timeout) throw new Error('Analysis timeout')
-    await new Promise((resolve) => setTimeout(resolve, interval))
+    await new Promise((resolve) => setTimeout(resolve, wait))
+    wait = Math.min(maxInterval, Math.round(wait * 1.5))
   }
 }

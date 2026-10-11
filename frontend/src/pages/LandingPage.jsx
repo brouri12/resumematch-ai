@@ -53,12 +53,9 @@ function Hero({ isAuthenticated }) {
       <motion.div className="absolute inset-0" style={{ y: bgY }} aria-hidden>
         <motion.div
           className="absolute inset-[-6%]"
-          initial={{ scale: 1.25, opacity: 0 }}
-          animate={{ scale: [1.25, 1.08, 1.14], opacity: 1 }}
-          transition={{
-            scale: { duration: 22, ease: 'easeOut', times: [0, 0.4, 1] },
-            opacity: { duration: 1.8, ease: 'easeOut' },
-          }}
+          initial={{ scale: 1.14, opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ opacity: { duration: 0.6, ease: 'easeOut' } }}
           style={{
             backgroundImage:
               'linear-gradient(120deg, rgba(12,24,20,0.86) 0%, rgba(20,53,43,0.62) 48%, rgba(14,124,102,0.38) 100%), url("https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&w=1920&q=80")',
@@ -74,17 +71,13 @@ function Hero({ isAuthenticated }) {
         style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(5,12,10,0.75) 100%)' }}
       />
 
-      <motion.div
+      <div
         aria-hidden
-        className="pointer-events-none absolute left-[10%] top-1/3 h-72 w-72 rounded-full bg-mint/25 blur-3xl"
-        animate={{ x: [0, 60, 0], y: [0, -30, 0], opacity: [0.5, 0.9, 0.5] }}
-        transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+        className="pointer-events-none absolute left-[10%] top-1/3 h-72 w-72 rounded-full bg-mint/25 opacity-70 blur-3xl"
       />
-      <motion.div
+      <div
         aria-hidden
-        className="pointer-events-none absolute bottom-10 right-[8%] h-80 w-80 rounded-full bg-amber/20 blur-3xl"
-        animate={{ x: [0, -50, 0], y: [0, 40, 0], opacity: [0.4, 0.8, 0.4] }}
-        transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut' }}
+        className="pointer-events-none absolute bottom-10 right-[8%] h-80 w-80 rounded-full bg-amber/20 opacity-60 blur-3xl"
       />
 
       <motion.div
@@ -92,14 +85,14 @@ function Hero({ isAuthenticated }) {
         className="absolute inset-x-0 top-0 z-20 bg-black"
         initial={{ height: '50%' }}
         animate={{ height: '0%' }}
-        transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
+        transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
       />
       <motion.div
         aria-hidden
         className="absolute inset-x-0 bottom-0 z-20 bg-black"
         initial={{ height: '50%' }}
         animate={{ height: '0%' }}
-        transition={{ duration: 1.4, ease: [0.76, 0, 0.24, 1], delay: 0.15 }}
+        transition={{ duration: 0.6, ease: [0.76, 0, 0.24, 1] }}
       />
 
       <motion.div
@@ -110,19 +103,19 @@ function Hero({ isAuthenticated }) {
           className="mb-4 flex items-center gap-3"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.9, delay: 1.1, ease: EASE }}
+          transition={{ duration: 0.5, delay: 0.35, ease: EASE }}
         >
           <motion.span
             className="h-px bg-mint"
             initial={{ width: 0 }}
             animate={{ width: 48 }}
-            transition={{ duration: 1, delay: 1.2, ease: EASE }}
+            transition={{ duration: 0.5, delay: 0.4, ease: EASE }}
           />
           <span className="text-sm font-semibold uppercase tracking-[0.3em] text-mint">CVisionnaires AI</span>
         </motion.div>
 
         <h1 className="max-w-4xl font-display text-5xl font-bold leading-[1.02] text-sand sm:text-6xl md:text-8xl">
-          <SplitText text="ResumeMatch" delay={1.25} />
+          <SplitText text="ResumeMatch" delay={0.4} />
           <br />
           <span className="sr-only"> AI</span>
           <span className="inline-block overflow-hidden pb-[0.12em] align-bottom" aria-hidden>
@@ -130,7 +123,7 @@ function Hero({ isAuthenticated }) {
               className="text-shimmer inline-block"
               initial={{ y: '110%', opacity: 0, rotate: 4 }}
               animate={{ y: '0%', opacity: 1, rotate: 0 }}
-              transition={{ duration: 1, delay: 1.45, ease: EASE }}
+              transition={{ duration: 0.5, delay: 0.5, ease: EASE }}
             >
               AI
             </motion.span>
@@ -139,9 +132,9 @@ function Hero({ isAuthenticated }) {
 
         <motion.p
           className="mt-6 max-w-xl text-lg text-foam/95 sm:text-xl"
-          initial={{ opacity: 0, y: 20, filter: 'blur(8px)' }}
-          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          transition={{ duration: 1, delay: 1.8, ease: EASE }}
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6, ease: EASE }}
         >
           Transformez votre CV, visualisez votre avenir.
         </motion.p>
@@ -150,7 +143,7 @@ function Hero({ isAuthenticated }) {
           className="mt-10 flex flex-wrap gap-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 2.05, ease: EASE }}
+          transition={{ duration: 0.5, delay: 0.7, ease: EASE }}
         >
           <Magnetic>
             <Link
@@ -177,7 +170,7 @@ function Hero({ isAuthenticated }) {
         className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 flex-col items-center gap-2 text-[10px] uppercase tracking-[0.3em] text-mint/80"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 2.6, duration: 1 }}
+        transition={{ delay: 0.9, duration: 0.5 }}
       >
         Défiler
         <span className="flex h-9 w-5 justify-center rounded-full border border-mint/50 pt-1.5">

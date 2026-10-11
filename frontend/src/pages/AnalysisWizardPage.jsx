@@ -12,9 +12,9 @@ import { EASE, PageHeader, Stagger, StaggerItem } from '../components/motion'
 const LEVELS = ['etudiant', 'junior', 'confirme']
 
 const stepVariants = {
-  enter: (dir) => ({ opacity: 0, x: dir * 60, filter: 'blur(6px)' }),
-  center: { opacity: 1, x: 0, filter: 'blur(0px)', transition: { duration: 0.5, ease: EASE } },
-  exit: (dir) => ({ opacity: 0, x: dir * -60, filter: 'blur(6px)', transition: { duration: 0.3, ease: 'easeIn' } }),
+  enter: (dir) => ({ opacity: 0, x: dir * 30 }),
+  center: { opacity: 1, x: 0, transition: { duration: 0.25, ease: EASE } },
+  exit: (dir) => ({ opacity: 0, x: dir * -30, transition: { duration: 0.12, ease: 'easeIn' } }),
 }
 
 const inputClass =
@@ -126,7 +126,7 @@ export default function AnalysisWizardPage() {
         className="relative mt-8 flex gap-2"
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, delay: 0.4, ease: EASE }}
+        transition={{ duration: 0.3, delay: 0.1, ease: EASE }}
       >
         {steps.map((label, index) => (
           <li

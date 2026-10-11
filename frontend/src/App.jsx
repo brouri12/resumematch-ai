@@ -1,26 +1,27 @@
-import { useEffect } from 'react'
+import { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AnimatePresence, MotionConfig, motion, useScroll, useSpring } from 'motion/react'
 import AdminRoute from './components/AdminRoute'
 import Navbar from './components/Navbar'
 import ProtectedRoute from './components/ProtectedRoute'
-import { AmbientBackground, pageVariants } from './components/motion'
+import { AmbientBackground, Loader, pageVariants } from './components/motion'
 import { DemoBanner } from './components/ui'
 import { AuthProvider } from './context/AuthContext'
 import { I18nProvider } from './context/I18nContext'
 import { SystemStatusProvider } from './context/SystemStatusContext'
-import AdminDashboardPage from './pages/AdminDashboardPage'
-import AnalysisWizardPage from './pages/AnalysisWizardPage'
-import ApplicationBoardPage from './pages/ApplicationBoardPage'
-import ComparePage from './pages/ComparePage'
-import DashboardPage from './pages/DashboardPage'
-import HistoryPage from './pages/HistoryPage'
-import JobSearchPage from './pages/JobSearchPage'
-import LandingPage from './pages/LandingPage'
-import LoginPage from './pages/LoginPage'
-import ProfilePage from './pages/ProfilePage'
-import RegisterPage from './pages/RegisterPage'
-import ResultsPage from './pages/ResultsPage'
+
+const AdminDashboardPage = lazy(() => import('./pages/AdminDashboardPage'))
+const AnalysisWizardPage = lazy(() => import('./pages/AnalysisWizardPage'))
+const ApplicationBoardPage = lazy(() => import('./pages/ApplicationBoardPage'))
+const ComparePage = lazy(() => import('./pages/ComparePage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage'))
+const JobSearchPage = lazy(() => import('./pages/JobSearchPage'))
+const LandingPage = lazy(() => import('./pages/LandingPage'))
+const LoginPage = lazy(() => import('./pages/LoginPage'))
+const ProfilePage = lazy(() => import('./pages/ProfilePage'))
+const RegisterPage = lazy(() => import('./pages/RegisterPage'))
+const ResultsPage = lazy(() => import('./pages/ResultsPage'))
 
 function ScrollProgress() {
   const { scrollYProgress } = useScroll()
@@ -50,6 +51,7 @@ function AnimatedRoutes() {
         animate="enter"
         exit="exit"
       >
+        <Suspense fallback={<Loader />}>
         <Routes location={location}>
           <Route path="/" element={<LandingPage />} />
           <Route path="/connexion" element={<LoginPage />} />
@@ -69,6 +71,7 @@ function AnimatedRoutes() {
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
+        </Suspense>
       </motion.div>
     </AnimatePresence>
   )

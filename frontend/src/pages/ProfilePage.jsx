@@ -50,7 +50,7 @@ export default function ProfilePage() {
         className="glass p-8"
         initial={{ opacity: 0, y: 40, rotateX: 10 }}
         animate={{ opacity: 1, y: 0, rotateX: 0 }}
-        transition={{ duration: 0.9, ease: EASE }}
+        transition={{ duration: 0.4, ease: EASE }}
         style={{ transformPerspective: 1000 }}
       >
       <div className="flex items-center gap-4">

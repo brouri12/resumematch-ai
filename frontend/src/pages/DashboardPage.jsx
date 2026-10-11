@@ -139,7 +139,7 @@ function Stat({ label, value, suffix = '' }) {
             className="mt-4 h-1 origin-left rounded-full bg-gradient-to-r from-coral via-leaf to-mint"
             initial={{ scaleX: 0 }}
             animate={{ scaleX: 1 }}
-            transition={{ duration: 1.2, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.6, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           />
         </div>
       </TiltCard>

@@ -47,7 +47,7 @@ export default function ScoreTimeline({ timeline = [] }) {
               </g>
             )
           })}
-          <motion.path d={area} fill="url(#score-area)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1, delay: 0.6 }} />
+          <motion.path d={area} fill="url(#score-area)" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5, delay: 0.2 }} />
           <motion.path
             d={path}
             fill="none"
@@ -57,7 +57,7 @@ export default function ScoreTimeline({ timeline = [] }) {
             strokeLinejoin="round"
             initial={{ pathLength: 0 }}
             animate={{ pathLength: 1 }}
-            transition={{ duration: 1.6, ease: EASE }}
+            transition={{ duration: 0.7, ease: EASE }}
           />
           {points.map((p, i) => (
             <g key={timeline[i].id} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)}>
