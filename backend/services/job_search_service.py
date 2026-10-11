@@ -69,7 +69,7 @@ def available_sources() -> list[dict]:
 # --- HTTP helpers -------------------------------------------------------------
 
 
-def _http_get(url: str, *, params=None, headers=None, timeout: float = 20.0):
+def _http_get(url: str, *, params=None, headers=None, timeout: float = 8.0):
     import httpx
 
     response = httpx.get(
@@ -254,7 +254,7 @@ def _france_travail_token() -> str:
                 "client_secret": settings.FRANCE_TRAVAIL_CLIENT_SECRET,
                 "scope": "api_offresdemploiv2 o2dsoffre",
             },
-            timeout=20.0,
+            timeout=8.0,
         )
         response.raise_for_status()
         return response.json()["access_token"]
