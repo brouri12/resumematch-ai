@@ -153,7 +153,7 @@ function Breakdown({ title, entries }) {
                 className="h-full rounded-full bg-gradient-to-r from-coral to-mint"
                 initial={{ width: 0 }}
                 animate={{ width: `${(e.value / max) * 100}%` }}
-                transition={{ duration: 0.9, ease: EASE }}
+                transition={{ duration: 0.4, ease: EASE }}
               />
             </div>
           </li>
@@ -205,7 +205,7 @@ function OverviewTab() {
                   className="rounded-t-md bg-gradient-to-t from-leaf to-mint"
                   initial={{ height: 0 }}
                   animate={{ height: `${(d.count / perDayMax) * 100}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.03, ease: EASE }}
+                  transition={{ duration: 0.4, delay: Math.min(i * 0.02, 0.2), ease: EASE }}
                   style={{ minHeight: d.count ? 4 : 0 }}
                 />
                 <span className="pointer-events-none absolute -top-6 left-1/2 hidden -translate-x-1/2 rounded bg-forest px-1.5 py-0.5 text-[10px] text-sand group-hover:block">
