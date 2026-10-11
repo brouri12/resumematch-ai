@@ -32,7 +32,7 @@ export default function LoginPage() {
         className="glass p-8"
         initial={{ opacity: 0, y: 40, rotateX: 12 }}
         animate={{ opacity: 1, y: 0, rotateX: 0 }}
-        transition={{ duration: 0.9, ease: EASE }}
+        transition={{ duration: 0.4, ease: EASE }}
         style={{ transformPerspective: 1000 }}
       >
       <PageHeader eyebrow="Bon retour" title="Connexion" subtitle="Accédez à ResumeMatch AI" />
@@ -75,7 +75,7 @@ export default function LoginPage() {
         className="mt-6 text-center text-sm text-moss"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.9 }}
+        transition={{ delay: 0.25 }}
       >
         Pas encore de compte ?{' '}
         <Link to="/inscription" className="font-semibold text-coral hover:underline">
