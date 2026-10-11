@@ -22,7 +22,7 @@ function ScoreBar({ label, value, delay = 0 }) {
           initial={{ width: 0 }}
           whileInView={{ width: `${pct}%` }}
           viewport={{ once: true }}
-          transition={{ duration: 1.4, delay: 0.2 + delay, ease: EASE }}
+          transition={{ duration: 0.7, delay: 0.05 + delay / 2, ease: EASE }}
         />
       </div>
     </div>
@@ -129,7 +129,7 @@ export default function ResultsPage() {
           className="no-print flex flex-wrap items-center gap-2"
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, delay: 0.4, ease: EASE }}
+          transition={{ duration: 0.3, delay: 0.1, ease: EASE }}
         >
           <StatusBadge status={analysis.status} />
           <select
@@ -172,7 +172,7 @@ export default function ResultsPage() {
             className="text-center text-sm text-moss"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 1.2 }}
+            transition={{ delay: 0.3 }}
           >
             {t('res.scoreLabel')}
           </motion.p>
@@ -292,9 +292,9 @@ export default function ResultsPage() {
             {letter && (
               <motion.div
                 className="mt-4 space-y-3"
-                initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
-                animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                transition={{ duration: 0.8, ease: EASE }}
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, ease: EASE }}
               >
                 <textarea
                   rows={12}
